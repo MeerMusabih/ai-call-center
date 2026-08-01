@@ -3,146 +3,212 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Call Center Dashboard</title>
+    <title>Contact Center - Operations Dashboard</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         :root {
-            --bg: #0f1117;
-            --surface: #1a1d27;
-            --surface2: #242736;
-            --border: #2e3144;
-            --text: #e4e6f0;
-            --text-dim: #8b8fa3;
-            --primary: #6c5ce7;
-            --primary-light: #a29bfe;
-            --green: #00b894;
-            --red: #e17055;
-            --yellow: #fdcb6e;
-            --blue: #74b9ff;
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --border: #e2e8f0;
+            --text: #1e293b;
+            --text-dim: #64748b;
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --green: #16a34a;
+            --red: #dc2626;
+            --yellow: #d97706;
+            --blue: #2563eb;
+            --shadow: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+            --shadow-lg: 0 10px 25px rgba(0,0,0,.08);
         }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
         .layout { display: flex; min-height: 100vh; }
+
+        /* Top bar */
+        .topbar {
+            position: fixed; top: 0; left: 0; right: 0; height: 56px; z-index: 100;
+            background: var(--surface); border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; padding: 0 24px; gap: 16px;
+        }
+        .topbar .brand { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; }
+        .topbar .brand small { display: block; font-size: 11px; font-weight: 400; color: var(--text-dim); margin-top: 1px; }
+        .topbar .divider { width: 1px; height: 24px; background: var(--border); }
+        .topbar .crumbs { color: var(--text-dim); font-size: 13px; }
+        .topbar .crumbs b { color: var(--text); font-weight: 600; }
+        .topbar .spacer { flex: 1; }
+        .topbar .search {
+            width: 280px; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+            background: var(--bg); color: var(--text); font-size: 13px; outline: none;
+        }
+        .topbar .search:focus { border-color: var(--primary); background: var(--surface); }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--primary); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
+
+        /* Sidebar */
         .sidebar {
-            width: 240px; background: var(--surface); border-right: 1px solid var(--border);
-            padding: 20px 0; display: flex; flex-direction: column; position: fixed; height: 100vh;
+            width: 220px; background: var(--surface); border-right: 1px solid var(--border);
+            padding-top: 72px; position: fixed; top: 0; bottom: 0; display: flex; flex-direction: column;
         }
-        .sidebar .logo { padding: 0 20px 24px; font-size: 18px; font-weight: 700; color: var(--primary-light); }
-        .sidebar .logo span { color: var(--text-dim); font-weight: 400; font-size: 12px; display: block; margin-top: 4px; }
+        .sidebar nav { flex: 1; padding: 12px; }
+        .sidebar nav .nav-label { font-size: 11px; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: .6px; padding: 12px 12px 6px; }
         .sidebar nav a {
-            display: flex; align-items: center; gap: 10px; padding: 10px 20px;
-            color: var(--text-dim); text-decoration: none; font-size: 14px; transition: all .15s;
+            display: flex; align-items: center; gap: 10px; padding: 9px 12px; margin-bottom: 2px;
+            color: var(--text-dim); text-decoration: none; font-size: 13px; font-weight: 500;
+            border-radius: 8px; transition: all .12s;
         }
-        .sidebar nav a:hover, .sidebar nav a.active { color: var(--text); background: var(--surface2); }
-        .sidebar nav a.active { border-right: 3px solid var(--primary); }
-        .sidebar .status { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--border); }
-        .sidebar .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
-        .sidebar .status-dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
-        .sidebar .status-dot.err { background: var(--red); }
-        .sidebar .status-text { font-size: 12px; color: var(--text-dim); }
-        .main { margin-left: 240px; flex: 1; padding: 24px 32px; }
-        .main h1 { font-size: 24px; margin-bottom: 24px; font-weight: 600; }
-        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .sidebar nav a svg { width: 16px; height: 16px; flex-shrink: 0; }
+        .sidebar nav a:hover { background: var(--bg); color: var(--text); }
+        .sidebar nav a.active { background: #eff6ff; color: var(--primary-dark); }
+        .sidebar .status { padding: 14px 16px; border-top: 1px solid var(--border); font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .sidebar .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .sidebar .status-dot.ok { background: var(--green); box-shadow: 0 0 0 3px rgba(22,163,74,.15); }
+        .sidebar .status-dot.err { background: var(--red); box-shadow: 0 0 0 3px rgba(220,38,38,.15); }
+        .sidebar .status-text { color: var(--text-dim); font-size: 12px; }
+
+        /* Main */
+        .main { margin-left: 220px; flex: 1; padding: 80px 32px 40px; }
+        .main h1 { font-size: 20px; margin-bottom: 4px; font-weight: 600; }
+        .page-head { margin-bottom: 24px; }
+        .page-head p { color: var(--text-dim); font-size: 13px; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 16px; margin-bottom: 24px; }
         .card {
             background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-            padding: 20px; display: flex; flex-direction: column; gap: 8px;
+            padding: 18px 20px; box-shadow: var(--shadow);
         }
-        .card .label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
-        .card .value { font-size: 28px; font-weight: 700; }
+        .card .label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: .5px; font-weight: 500; }
+        .card .value { font-size: 30px; font-weight: 700; margin-top: 8px; letter-spacing: -.5px; }
         .card .value.green { color: var(--green); }
         .card .value.blue { color: var(--blue); }
         .card .value.yellow { color: var(--yellow); }
         .panel {
             background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
-            margin-bottom: 24px; overflow: hidden;
+            margin-bottom: 24px; box-shadow: var(--shadow); overflow: hidden;
         }
         .panel-header {
-            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            padding: 14px 20px; border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
         }
-        .panel-header h2 { font-size: 16px; font-weight: 600; }
-        .panel-body { padding: 16px 20px; }
+        .panel-header h2 { font-size: 14px; font-weight: 600; }
+        .panel-body { padding: 8px 0; }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px 16px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
-        th { color: var(--text-dim); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        th, td { padding: 12px 20px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-dim); font-weight: 600; font-size: 11px; text-transform: uppercase; letter-spacing: .5px; background: var(--bg); }
         tr:last-child td { border-bottom: none; }
-        tr:hover td { background: var(--surface2); }
+        tr:hover td { background: #f8fafc; }
         .badge {
-            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            display: inline-block; padding: 3px 10px; border-radius: 999px;
             font-size: 11px; font-weight: 600;
         }
-        .badge.green { background: rgba(0,184,148,.15); color: var(--green); }
-        .badge.yellow { background: rgba(253,203,110,.15); color: var(--yellow); }
-        .badge.red { background: rgba(225,112,85,.15); color: var(--red); }
-        .badge.blue { background: rgba(116,185,255,.15); color: var(--blue); }
+        .badge.green { background: #f0fdf4; color: var(--green); border: 1px solid #bbf7d0; }
+        .badge.yellow { background: #fffbeb; color: var(--yellow); border: 1px solid #fde68a; }
+        .badge.red { background: #fef2f2; color: var(--red); border: 1px solid #fecaca; }
+        .badge.blue { background: #eff6ff; color: var(--blue); border: 1px solid #bfdbfe; }
         .btn {
             padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
-            font-size: 13px; font-weight: 500; transition: all .15s;
+            font-size: 13px; font-weight: 500; transition: all .12s; font-family: inherit;
         }
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: var(--primary-light); }
-        .btn-sm { padding: 4px 10px; font-size: 12px; }
-        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
-        .btn-outline:hover { border-color: var(--primary); color: var(--text); }
+        .btn-primary { background: var(--primary); color: #fff; }
+        .btn-primary:hover { background: var(--primary-dark); }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+        .btn-outline { background: var(--surface); border: 1px solid var(--border); color: var(--text-dim); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
         .empty { padding: 40px; text-align: center; color: var(--text-dim); font-size: 14px; }
         .page { display: none; }
         .page.active { display: block; }
         .toast {
-            position: fixed; bottom: 24px; right: 24px; background: var(--surface2);
-            border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px;
-            font-size: 13px; z-index: 1000; transform: translateY(100px); opacity: 0;
-            transition: all .3s;
+            position: fixed; bottom: 24px; right: 24px; background: #1e293b; color: #fff;
+            border-radius: 10px; padding: 12px 20px; font-size: 13px; z-index: 1000;
+            transform: translateY(100px); opacity: 0; transition: all .3s; box-shadow: var(--shadow-lg);
         }
         .toast.show { transform: translateY(0); opacity: 1; }
 
-        .chat-container { display: flex; flex-direction: column; height: 500px; }
-        .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; }
-        .chat-msg { margin-bottom: 12px; display: flex; gap: 10px; }
-        .chat-msg .role { min-width: 70px; font-size: 11px; font-weight: 600; text-transform: uppercase; padding-top: 2px; }
-        .chat-msg .role.user { color: var(--blue); }
-        .chat-msg .role.assistant { color: var(--green); }
-        .chat-msg .text { font-size: 13px; line-height: 1.5; color: var(--text); background: var(--surface2); padding: 8px 12px; border-radius: 8px; max-width: 80%; }
-        .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+        .chat-container { display: flex; flex-direction: column; height: 480px; background: var(--bg); }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 20px; }
+        .chat-msg { margin-bottom: 14px; display: flex; gap: 10px; }
+        .chat-msg .avatar-sm { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; flex-shrink: 0; }
+        .chat-msg .avatar-sm.user { background: #dbeafe; color: var(--blue); }
+        .chat-msg .avatar-sm.assistant { background: #e0e7ff; color: #4338ca; }
+        .chat-msg .bubble { font-size: 13px; line-height: 1.55; background: var(--surface); padding: 10px 14px; border-radius: 10px; max-width: 75%; border: 1px solid var(--border); box-shadow: var(--shadow); }
+        .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--surface); }
         .chat-input input {
             flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
-            background: var(--surface2); color: var(--text); font-size: 13px; outline: none;
+            background: var(--bg); color: var(--text); font-size: 13px; outline: none; font-family: inherit;
         }
-        .chat-input input:focus { border-color: var(--primary); }
+        .chat-input input:focus { border-color: var(--primary); background: var(--surface); }
         .chat-input select {
             padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
-            background: var(--surface2); color: var(--text); font-size: 13px;
+            background: var(--bg); color: var(--text); font-size: 13px; outline: none;
         }
-        .chat-input button { padding: 10px 20px; }
-
-        .setup-info { background: var(--surface2); border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
-        .setup-info code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+        .setup-info { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin: 16px 20px; font-size: 13px; line-height: 1.7; }
+        .setup-info code { background: var(--surface); border: 1px solid var(--border); padding: 2px 7px; border-radius: 6px; font-size: 12px; font-family: Consolas, monospace; }
+        .setup-info strong { color: var(--text); }
+        .step-num { display: inline-flex; width: 22px; height: 22px; border-radius: 50%; background: var(--primary); color: #fff; align-items: center; justify-content: center; font-size: 12px; font-weight: 600; margin-right: 8px; }
+        .setup-steps { padding: 0 20px 8px; }
+        .setup-steps .step { display: flex; align-items: flex-start; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+        .setup-steps .step:last-child { border-bottom: none; }
+        .setup-steps .step-body { flex: 1; font-size: 13px; line-height: 1.7; color: var(--text-dim); }
+        .setup-steps .step-body b { color: var(--text); }
     </style>
 </head>
 <body>
+    <div class="topbar">
+        <div class="brand">Contact Center<small>Operations Dashboard</small></div>
+        <div class="divider"></div>
+        <div class="crumbs"><b>Dashboard</b> &nbsp;/&nbsp; <span id="crumbPage">Overview</span></div>
+        <div class="spacer"></div>
+        <input class="search" type="search" placeholder="Search calls, numbers, agents..." id="globalSearch">
+        <div class="avatar">A</div>
+    </div>
+
     <div class="layout">
         <aside class="sidebar">
-            <div class="logo">AI Call Center<span>Management Dashboard</span></div>
             <nav>
-                <a href="#" data-page="overview" class="active">&#9632; Overview</a>
-                <a href="#" data-page="test">&#9632; Test Chat</a>
-                <a href="#" data-page="sessions">&#9632; Active Calls</a>
-                <a href="#" data-page="calls">&#9632; Call Logs</a>
-                <a href="#" data-page="faq">&#9632; FAQ Management</a>
-                <a href="#" data-page="setup">&#9632; Setup Guide</a>
+                <div class="nav-label">General</div>
+                <a href="#" data-page="overview" class="active">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg>
+                    Overview
+                </a>
+                <a href="#" data-page="test">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Agent Console
+                </a>
+                <div class="nav-label">Telephony</div>
+                <a href="#" data-page="sessions">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    Live Calls
+                </a>
+                <a href="#" data-page="calls">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 4 4-8"/></svg>
+                    Call History
+                </a>
+                <div class="nav-label">Knowledge</div>
+                <a href="#" data-page="faq">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                    Knowledge Base
+                </a>
+                <div class="nav-label">Resources</div>
+                <a href="#" data-page="setup">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    Getting Started
+                </a>
             </nav>
             <div class="status">
-                <div><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">Checking...</span></div>
+                <span class="status-dot" id="statusDot"></span>
+                <span class="status-text" id="statusText">Checking...</span>
             </div>
         </aside>
 
         <main class="main">
             <!-- OVERVIEW -->
             <div class="page active" id="page-overview">
-                <h1>System Overview</h1>
+                <div class="page-head">
+                    <h1>Overview</h1>
+                    <p>Summary of contact center activity</p>
+                </div>
                 <div class="cards">
-                    <div class="card"><span class="label">Status</span><span class="value green" id="ovStatus">-</span></div>
-                    <div class="card"><span class="label">Active Calls</span><span class="value blue" id="ovActive">0</span></div>
+                    <div class="card"><span class="label">System Status</span><span class="value green" id="ovStatus">-</span></div>
+                    <div class="card"><span class="label">Live Calls</span><span class="value blue" id="ovActive">0</span></div>
                     <div class="card"><span class="label">Total Calls</span><span class="value" id="ovTotal">0</span></div>
-                    <div class="card"><span class="label">FAQ Items</span><span class="value yellow" id="ovFaq">0</span></div>
+                    <div class="card"><span class="label">Knowledge Items</span><span class="value yellow" id="ovFaq">0</span></div>
                 </div>
                 <div class="panel">
                     <div class="panel-header"><h2>Recent Calls</h2></div>
@@ -150,12 +216,15 @@
                 </div>
             </div>
 
-            <!-- TEST CHAT -->
+            <!-- AGENT CONSOLE -->
             <div class="page" id="page-test">
-                <h1>Test Chat</h1>
+                <div class="page-head">
+                    <h1>Agent Console</h1>
+                    <p>Send a message to test the virtual agent</p>
+                </div>
                 <div class="panel">
                     <div class="panel-header">
-                        <h2>Simulate a call</h2>
+                        <h2>Message the agent</h2>
                         <select id="testLang">
                             <option value="en">English</option>
                             <option value="ar">Arabic</option>
@@ -163,50 +232,59 @@
                     </div>
                     <div class="chat-container">
                         <div class="chat-messages" id="chatMessages">
-                            <div class="empty">Send a message to test the AI agent</div>
+                            <div class="empty">Type a message below to start a conversation</div>
                         </div>
                         <div class="chat-input">
-                            <input type="text" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+                            <input type="text" id="chatInput" placeholder="Type your message..." onkeydown="if(event.key==='Enter')sendChat()">
                             <button class="btn btn-primary" onclick="sendChat()">Send</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SESSIONS -->
+            <!-- LIVE CALLS -->
             <div class="page" id="page-sessions">
-                <h1>Active Calls</h1>
+                <div class="page-head">
+                    <h1>Live Calls</h1>
+                    <p>Active sessions on the contact center</p>
+                </div>
                 <div class="panel">
                     <div class="panel-header">
-                        <h2>Sessions</h2>
+                        <h2>Active sessions</h2>
                         <button class="btn btn-sm btn-outline" onclick="loadSessions()">Refresh</button>
                     </div>
                     <div class="panel-body" id="sessionsTable" style="padding:0"><div class="empty">No active sessions</div></div>
                 </div>
                 <div class="panel" id="transcriptPanel" style="display:none">
-                    <div class="panel-header"><h2>Transcript</h2></div>
+                    <div class="panel-header"><h2>Conversation transcript</h2></div>
                     <div class="panel-body" id="transcriptBody" style="max-height:400px;overflow-y:auto"></div>
                 </div>
             </div>
 
-            <!-- CALL LOGS -->
+            <!-- CALL HISTORY -->
             <div class="page" id="page-calls">
-                <h1>Call Logs</h1>
+                <div class="page-head">
+                    <h1>Call History</h1>
+                    <p>All calls handled by the contact center</p>
+                </div>
                 <div class="panel">
                     <div class="panel-header">
-                        <h2>All Calls</h2>
+                        <h2>All calls</h2>
                         <button class="btn btn-sm btn-outline" onclick="loadCalls()">Refresh</button>
                     </div>
                     <div class="panel-body" id="callsTable" style="padding:0"><div class="empty">No call logs</div></div>
                 </div>
             </div>
 
-            <!-- FAQ -->
+            <!-- KNOWLEDGE BASE -->
             <div class="page" id="page-faq">
-                <h1>FAQ Management</h1>
+                <div class="page-head">
+                    <h1>Knowledge Base</h1>
+                    <p>FAQ content used by the virtual agent</p>
+                </div>
                 <div class="panel">
                     <div class="panel-header">
-                        <h2>FAQ Items</h2>
+                        <h2>FAQ items</h2>
                         <div style="display:flex;gap:8px">
                             <button class="btn btn-sm btn-outline" onclick="loadFaq()">Refresh</button>
                             <button class="btn btn-sm btn-primary" onclick="refreshFaq()">Re-index</button>
@@ -216,29 +294,45 @@
                 </div>
             </div>
 
-            <!-- SETUP -->
+            <!-- GETTING STARTED -->
             <div class="page" id="page-setup">
-                <h1>Setup Guide</h1>
+                <div class="page-head">
+                    <h1>Getting Started</h1>
+                    <p>Connect a phone number to the contact center</p>
+                </div>
                 <div class="panel">
-                    <div class="panel-header"><h2>How to connect Twilio</h2></div>
-                    <div class="panel-body">
-                        <div class="setup-info">
-                            <strong>Step 1:</strong> Install ngrok and expose your local server:<br>
-                            <code>ngrok http 8000</code><br><br>
-                            <strong>Step 2:</strong> Copy the ngrok HTTPS URL and add it to <code>.env</code>:<br>
-                            <code>TWILIO_WEBHOOK_URL=https://your-ngrok-url.ngrok-free.app</code><br><br>
-                            <strong>Step 3:</strong> Add your Twilio credentials to <code>.env</code>:<br>
-                            <code>TWILIO_ACCOUNT_SID=ACxxxxx</code><br>
-                            <code>TWILIO_AUTH_TOKEN=xxxxx</code><br>
-                            <code>TWILIO_PHONE_NUMBER=+1234567890</code><br><br>
-                            <strong>Step 4:</strong> In the Twilio Console, set your phone number's webhook:<br>
-                            Voice URL → <code>https://your-ngrok-url.ngrok-free.app/webhook/call/incoming</code> (POST)<br>
-                            Status URL → <code>https://your-ngrok-url.ngrok-free.app/webhook/call/status</code> (POST)<br><br>
-                            <strong>Step 5:</strong> Call your Twilio number and test!
+                    <div class="panel-header"><h2>Twilio phone integration</h2></div>
+                    <div class="setup-steps">
+                        <div class="step">
+                            <span class="step-num">1</span>
+                            <div class="step-body">Install <b>ngrok</b> and expose the local server:<br><code>ngrok http 8000</code></div>
                         </div>
-                        <div class="setup-info" style="margin-top:12px">
-                            <strong>Test without Twilio:</strong> Use the <a href="#" data-page="test" style="color:var(--primary-light)">Test Chat</a> tab to test the AI agent with text input.
+                        <div class="step">
+                            <span class="step-num">2</span>
+                            <div class="step-body">Copy the ngrok HTTPS URL into <b>.env</b>:<br><code>TWILIO_WEBHOOK_URL=https://your-ngrok-url.ngrok-free.app</code></div>
                         </div>
+                        <div class="step">
+                            <span class="step-num">3</span>
+                            <div class="step-body">Add your Twilio credentials to <b>.env</b>:<br>
+                                <code>TWILIO_ACCOUNT_SID=ACxxxxx</code><br>
+                                <code>TWILIO_AUTH_TOKEN=xxxxx</code><br>
+                                <code>TWILIO_PHONE_NUMBER=+1234567890</code>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">4</span>
+                            <div class="step-body">In the Twilio Console, set your number's webhook:<br>
+                                Voice URL → <code>/webhook/call/incoming</code> (POST)<br>
+                                Status URL → <code>/webhook/call/status</code> (POST)
+                            </div>
+                        </div>
+                        <div class="step">
+                            <span class="step-num">5</span>
+                            <div class="step-body">Call your Twilio number and test the full flow.</div>
+                        </div>
+                    </div>
+                    <div class="setup-info">
+                        <b>Testing without a phone line:</b> use the <a href="#" data-page="test" style="color:var(--primary)">Agent Console</a> to message the virtual agent directly.
                     </div>
                 </div>
             </div>
@@ -318,7 +412,7 @@
             for (const c of calls) {
                 const badge = c.state === 'completed' ? 'green' : c.state === 'active' ? 'blue' : 'yellow';
                 html += `<tr>
-                    <td style="font-family:monospace;font-size:12px">${(c.call_id||'').substring(0,12)}...</td>
+                    <td style="font-family:Consolas,monospace;font-size:12px;color:var(--text-dim)">${(c.call_id||'').substring(0,12)}...</td>
                     <td>${c.phone_number || '-'}</td>
                     <td>${(c.language||'').toUpperCase()}</td>
                     <td><span class="badge ${badge}">${c.state}</span></td>
@@ -337,8 +431,8 @@
             const messages = document.getElementById('chatMessages');
             if (messages.querySelector('.empty')) messages.innerHTML = '';
 
-            messages.innerHTML += `<div class="chat-msg"><span class="role user">You</span><span class="text">${escapeHtml(msg)}</span></div>`;
-            messages.innerHTML += `<div class="chat-msg" id="loading"><span class="role assistant">AI</span><span class="text" style="color:var(--text-dim)">Thinking...</span></div>`;
+            messages.innerHTML += `<div class="chat-msg"><span class="avatar-sm user">U</span><div class="bubble">${escapeHtml(msg)}</div></div>`;
+            messages.innerHTML += `<div class="chat-msg" id="loading"><span class="avatar-sm assistant">A</span><div class="bubble" style="color:var(--text-dim)">Processing...</div></div>`;
             messages.scrollTop = messages.scrollHeight;
 
             const lang = document.getElementById('testLang').value;
@@ -352,9 +446,9 @@
             if (loading) loading.remove();
 
             if (data && data.response) {
-                messages.innerHTML += `<div class="chat-msg"><span class="role assistant">AI</span><span class="text">${escapeHtml(data.response)}</span></div>`;
+                messages.innerHTML += `<div class="chat-msg"><span class="avatar-sm assistant">A</span><div class="bubble">${escapeHtml(data.response)}</div></div>`;
             } else {
-                messages.innerHTML += `<div class="chat-msg"><span class="role assistant">AI</span><span class="text" style="color:var(--red)">Error: No response</span></div>`;
+                messages.innerHTML += `<div class="chat-msg"><span class="avatar-sm assistant">A</span><div class="bubble" style="color:var(--red)">Error: No response</div></div>`;
             }
             messages.scrollTop = messages.scrollHeight;
         }
@@ -371,7 +465,7 @@
             for (const s of sessions) {
                 const badge = s.state === 'active' ? 'green' : s.state === 'completed' ? 'yellow' : 'red';
                 html += `<tr>
-                    <td style="font-family:monospace;font-size:12px">${s.call_id.substring(0,16)}</td>
+                    <td style="font-family:Consolas,monospace;font-size:12px;color:var(--text-dim)">${s.call_id.substring(0,16)}</td>
                     <td>${s.phone_number}</td>
                     <td>${(s.language||'-').toUpperCase()}</td>
                     <td><span class="badge ${badge}">${s.state}</span></td>
@@ -393,7 +487,7 @@
             }
             let html = '';
             for (const t of s.transcript) {
-                html += `<div class="chat-msg"><span class="role ${t.role}">${t.role}</span><span class="text">${escapeHtml(t.text)}</span></div>`;
+                html += `<div class="chat-msg"><span class="avatar-sm ${t.role}">${t.role === 'user' ? 'U' : 'A'}</span><div class="bubble">${escapeHtml(t.text)}</div></div>`;
             }
             body.innerHTML = html;
         }
@@ -413,7 +507,7 @@
             for (const f of faq) {
                 const lang = f.language === 'ar' ? '<span class="badge blue">AR</span>' : '<span class="badge green">EN</span>';
                 html += `<tr>
-                    <td style="font-family:monospace;font-size:12px">${f.id}</td>
+                    <td style="font-family:Consolas,monospace;font-size:12px;color:var(--text-dim)">${f.id}</td>
                     <td>${escapeHtml(f.question)}</td>
                     <td style="color:var(--text-dim);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.answer)}</td>
                     <td>${f.category || '-'}</td><td>${lang}</td>
@@ -424,11 +518,13 @@
 
         async function refreshFaq() {
             const r = await fetch(API + '/api/faq/refresh', { method: 'POST' });
-            if (r.ok) { toast('FAQ store re-indexed'); loadFaq(); }
+            if (r.ok) { toast('Knowledge base re-indexed'); loadFaq(); }
             else { toast('Failed to re-index'); }
         }
 
         function loadPage(page) {
+            const titles = { overview: 'Overview', test: 'Agent Console', sessions: 'Live Calls', calls: 'Call History', faq: 'Knowledge Base', setup: 'Getting Started' };
+            document.getElementById('crumbPage').textContent = titles[page] || page;
             switch (page) {
                 case 'overview': loadOverview(); break;
                 case 'test': document.getElementById('chatInput').focus(); break;
