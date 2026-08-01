@@ -5,12 +5,11 @@ import tempfile
 import os
 
 from app.config import settings
+from app.utils.ffmpeg import ensure_ffmpeg_on_path
 
 logger = logging.getLogger(__name__)
 
-_FFMPEG_PATH = r"C:\Users\sirh9\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin"
-if _FFMPEG_PATH not in os.environ.get("PATH", ""):
-    os.environ["PATH"] = _FFMPEG_PATH + os.pathsep + os.environ.get("PATH", "")
+ensure_ffmpeg_on_path(settings.ffmpeg_path or None)
 
 from pydub import AudioSegment
 

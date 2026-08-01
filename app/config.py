@@ -36,6 +36,8 @@ class Settings(BaseSettings):
 
     tts_sample_rate: int = 8000
 
+    ffmpeg_path: str = ""
+
     ivr_timeout_seconds: int = 10
     ivr_max_retries: int = 2
 

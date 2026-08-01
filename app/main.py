@@ -1,10 +1,7 @@
-import os
-
-_ffmpeg_path = r"C:\Users\sirh9\AppData\Local\Microsoft\WinGet\Packages\Gyan.FFmpeg_Microsoft.Winget.Source_8wekyb3d8bbwe\ffmpeg-8.1.2-full_build\bin"
-os.environ["PATH"] = _ffmpeg_path + os.pathsep + os.environ.get("PATH", "")
-
 import logging
 import uuid
+from datetime import datetime
+
 from fastapi import FastAPI, WebSocket, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
@@ -12,12 +9,15 @@ from fastapi.staticfiles import StaticFiles
 from twilio.twiml.voice_response import VoiceResponse
 
 from app.config import settings
+from app.utils.ffmpeg import ensure_ffmpeg_on_path
+
+ensure_ffmpeg_on_path(settings.ffmpeg_path or None)
+
 from app.ivr.menu import router as ivr_router
 from app.voice.stream import voice_handler, rag, tts, faq_store, stt
 from app.utils.sessions import session_manager
 from app.utils.call_logger import CallLogger
 from app.models.schemas import HealthResponse, CallState, Language
-from datetime import datetime
 
 logger = logging.getLogger(__name__)
 

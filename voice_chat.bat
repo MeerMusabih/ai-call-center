@@ -11,8 +11,20 @@ for /f "delims=" %%i in ('curl -s -o nul -w "%%{http_code}" http://127.0.0.1:800
 
 if "%SERVER_UP%"=="200" goto ready
 
+REM Locate Ollama
+set OLLAMA_EXE=ollama
+where ollama >nul 2>nul
+if %ERRORLEVEL% EQU 0 (
+    set OLLAMA_EXE=ollama
+) else if exist "%LOCALAPPDATA%\Programs\Ollama\ollama.exe" (
+    set OLLAMA_EXE="%LOCALAPPDATA%\Programs\Ollama\ollama.exe"
+) else (
+    echo [!] Ollama not found. Install it from https://ollama.com/download or run setup.bat
+    exit /b 1
+)
+
 echo [1/2] Starting Ollama...
-start /B "" "C:\Users\sirh9\AppData\Local\Programs\Ollama\ollama.exe" serve
+start /B "" %OLLAMA_EXE% serve
 timeout /t 3 /nobreak >nul
 
 echo [2/2] Starting FastAPI server...
