@@ -1,0 +1,24 @@
+# Environment / secrets
+.env
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Logs and transient files
+*.log
+server_err.txt
+import_err*.txt
+server_err.log
+
+# Runtime data (regenerated)
+data/chroma/
+data/calls/
+
+# OS
+Thumbs.db
+.DS_Store

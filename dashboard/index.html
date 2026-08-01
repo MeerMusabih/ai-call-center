@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Call Center Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #0f1117;
+            --surface: #1a1d27;
+            --surface2: #242736;
+            --border: #2e3144;
+            --text: #e4e6f0;
+            --text-dim: #8b8fa3;
+            --primary: #6c5ce7;
+            --primary-light: #a29bfe;
+            --green: #00b894;
+            --red: #e17055;
+            --yellow: #fdcb6e;
+            --blue: #74b9ff;
+        }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg); color: var(--text); }
+        .layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 240px; background: var(--surface); border-right: 1px solid var(--border);
+            padding: 20px 0; display: flex; flex-direction: column; position: fixed; height: 100vh;
+        }
+        .sidebar .logo { padding: 0 20px 24px; font-size: 18px; font-weight: 700; color: var(--primary-light); }
+        .sidebar .logo span { color: var(--text-dim); font-weight: 400; font-size: 12px; display: block; margin-top: 4px; }
+        .sidebar nav a {
+            display: flex; align-items: center; gap: 10px; padding: 10px 20px;
+            color: var(--text-dim); text-decoration: none; font-size: 14px; transition: all .15s;
+        }
+        .sidebar nav a:hover, .sidebar nav a.active { color: var(--text); background: var(--surface2); }
+        .sidebar nav a.active { border-right: 3px solid var(--primary); }
+        .sidebar .status { margin-top: auto; padding: 16px 20px; border-top: 1px solid var(--border); }
+        .sidebar .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 8px; }
+        .sidebar .status-dot.ok { background: var(--green); box-shadow: 0 0 6px var(--green); }
+        .sidebar .status-dot.err { background: var(--red); }
+        .sidebar .status-text { font-size: 12px; color: var(--text-dim); }
+        .main { margin-left: 240px; flex: 1; padding: 24px 32px; }
+        .main h1 { font-size: 24px; margin-bottom: 24px; font-weight: 600; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .card {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            padding: 20px; display: flex; flex-direction: column; gap: 8px;
+        }
+        .card .label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; }
+        .card .value { font-size: 28px; font-weight: 700; }
+        .card .value.green { color: var(--green); }
+        .card .value.blue { color: var(--blue); }
+        .card .value.yellow { color: var(--yellow); }
+        .panel {
+            background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+            margin-bottom: 24px; overflow: hidden;
+        }
+        .panel-header {
+            padding: 16px 20px; border-bottom: 1px solid var(--border);
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .panel-header h2 { font-size: 16px; font-weight: 600; }
+        .panel-body { padding: 16px 20px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 16px; text-align: left; font-size: 13px; border-bottom: 1px solid var(--border); }
+        th { color: var(--text-dim); font-weight: 500; font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px; }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: var(--surface2); }
+        .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 10px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge.green { background: rgba(0,184,148,.15); color: var(--green); }
+        .badge.yellow { background: rgba(253,203,110,.15); color: var(--yellow); }
+        .badge.red { background: rgba(225,112,85,.15); color: var(--red); }
+        .badge.blue { background: rgba(116,185,255,.15); color: var(--blue); }
+        .btn {
+            padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+            font-size: 13px; font-weight: 500; transition: all .15s;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-light); }
+        .btn-sm { padding: 4px 10px; font-size: 12px; }
+        .btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text-dim); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--text); }
+        .empty { padding: 40px; text-align: center; color: var(--text-dim); font-size: 14px; }
+        .page { display: none; }
+        .page.active { display: block; }
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; background: var(--surface2);
+            border: 1px solid var(--border); border-radius: 8px; padding: 12px 20px;
+            font-size: 13px; z-index: 1000; transform: translateY(100px); opacity: 0;
+            transition: all .3s;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+
+        .chat-container { display: flex; flex-direction: column; height: 500px; }
+        .chat-messages { flex: 1; overflow-y: auto; padding: 16px 20px; }
+        .chat-msg { margin-bottom: 12px; display: flex; gap: 10px; }
+        .chat-msg .role { min-width: 70px; font-size: 11px; font-weight: 600; text-transform: uppercase; padding-top: 2px; }
+        .chat-msg .role.user { color: var(--blue); }
+        .chat-msg .role.assistant { color: var(--green); }
+        .chat-msg .text { font-size: 13px; line-height: 1.5; color: var(--text); background: var(--surface2); padding: 8px 12px; border-radius: 8px; max-width: 80%; }
+        .chat-input { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+        .chat-input input {
+            flex: 1; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text); font-size: 13px; outline: none;
+        }
+        .chat-input input:focus { border-color: var(--primary); }
+        .chat-input select {
+            padding: 8px 12px; border-radius: 8px; border: 1px solid var(--border);
+            background: var(--surface2); color: var(--text); font-size: 13px;
+        }
+        .chat-input button { padding: 10px 20px; }
+
+        .setup-info { background: var(--surface2); border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 13px; line-height: 1.6; }
+        .setup-info code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="logo">AI Call Center<span>Management Dashboard</span></div>
+            <nav>
+                <a href="#" data-page="overview" class="active">&#9632; Overview</a>
+                <a href="#" data-page="test">&#9632; Test Chat</a>
+                <a href="#" data-page="sessions">&#9632; Active Calls</a>
+                <a href="#" data-page="calls">&#9632; Call Logs</a>
+                <a href="#" data-page="faq">&#9632; FAQ Management</a>
+                <a href="#" data-page="setup">&#9632; Setup Guide</a>
+            </nav>
+            <div class="status">
+                <div><span class="status-dot" id="statusDot"></span><span class="status-text" id="statusText">Checking...</span></div>
+            </div>
+        </aside>
+
+        <main class="main">
+            <!-- OVERVIEW -->
+            <div class="page active" id="page-overview">
+                <h1>System Overview</h1>
+                <div class="cards">
+                    <div class="card"><span class="label">Status</span><span class="value green" id="ovStatus">-</span></div>
+                    <div class="card"><span class="label">Active Calls</span><span class="value blue" id="ovActive">0</span></div>
+                    <div class="card"><span class="label">Total Calls</span><span class="value" id="ovTotal">0</span></div>
+                    <div class="card"><span class="label">FAQ Items</span><span class="value yellow" id="ovFaq">0</span></div>
+                </div>
+                <div class="panel">
+                    <div class="panel-header"><h2>Recent Calls</h2></div>
+                    <div class="panel-body" id="ovRecentCalls" style="padding:0"><div class="empty">No calls yet</div></div>
+                </div>
+            </div>
+
+            <!-- TEST CHAT -->
+            <div class="page" id="page-test">
+                <h1>Test Chat</h1>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Simulate a call</h2>
+                        <select id="testLang">
+                            <option value="en">English</option>
+                            <option value="ar">Arabic</option>
+                        </select>
+                    </div>
+                    <div class="chat-container">
+                        <div class="chat-messages" id="chatMessages">
+                            <div class="empty">Send a message to test the AI agent</div>
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" id="chatInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendChat()">
+                            <button class="btn btn-primary" onclick="sendChat()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SESSIONS -->
+            <div class="page" id="page-sessions">
+                <h1>Active Calls</h1>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>Sessions</h2>
+                        <button class="btn btn-sm btn-outline" onclick="loadSessions()">Refresh</button>
+                    </div>
+                    <div class="panel-body" id="sessionsTable" style="padding:0"><div class="empty">No active sessions</div></div>
+                </div>
+                <div class="panel" id="transcriptPanel" style="display:none">
+                    <div class="panel-header"><h2>Transcript</h2></div>
+                    <div class="panel-body" id="transcriptBody" style="max-height:400px;overflow-y:auto"></div>
+                </div>
+            </div>
+
+            <!-- CALL LOGS -->
+            <div class="page" id="page-calls">
+                <h1>Call Logs</h1>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>All Calls</h2>
+                        <button class="btn btn-sm btn-outline" onclick="loadCalls()">Refresh</button>
+                    </div>
+                    <div class="panel-body" id="callsTable" style="padding:0"><div class="empty">No call logs</div></div>
+                </div>
+            </div>
+
+            <!-- FAQ -->
+            <div class="page" id="page-faq">
+                <h1>FAQ Management</h1>
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2>FAQ Items</h2>
+                        <div style="display:flex;gap:8px">
+                            <button class="btn btn-sm btn-outline" onclick="loadFaq()">Refresh</button>
+                            <button class="btn btn-sm btn-primary" onclick="refreshFaq()">Re-index</button>
+                        </div>
+                    </div>
+                    <div class="panel-body" id="faqTable" style="padding:0"><div class="empty">No FAQ items</div></div>
+                </div>
+            </div>
+
+            <!-- SETUP -->
+            <div class="page" id="page-setup">
+                <h1>Setup Guide</h1>
+                <div class="panel">
+                    <div class="panel-header"><h2>How to connect Twilio</h2></div>
+                    <div class="panel-body">
+                        <div class="setup-info">
+                            <strong>Step 1:</strong> Install ngrok and expose your local server:<br>
+                            <code>ngrok http 8000</code><br><br>
+                            <strong>Step 2:</strong> Copy the ngrok HTTPS URL and add it to <code>.env</code>:<br>
+                            <code>TWILIO_WEBHOOK_URL=https://your-ngrok-url.ngrok-free.app</code><br><br>
+                            <strong>Step 3:</strong> Add your Twilio credentials to <code>.env</code>:<br>
+                            <code>TWILIO_ACCOUNT_SID=ACxxxxx</code><br>
+                            <code>TWILIO_AUTH_TOKEN=xxxxx</code><br>
+                            <code>TWILIO_PHONE_NUMBER=+1234567890</code><br><br>
+                            <strong>Step 4:</strong> In the Twilio Console, set your phone number's webhook:<br>
+                            Voice URL → <code>https://your-ngrok-url.ngrok-free.app/webhook/call/incoming</code> (POST)<br>
+                            Status URL → <code>https://your-ngrok-url.ngrok-free.app/webhook/call/status</code> (POST)<br><br>
+                            <strong>Step 5:</strong> Call your Twilio number and test!
+                        </div>
+                        <div class="setup-info" style="margin-top:12px">
+                            <strong>Test without Twilio:</strong> Use the <a href="#" data-page="test" style="color:var(--primary-light)">Test Chat</a> tab to test the AI agent with text input.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const API = '';
+        let currentPage = 'overview';
+        let testCallId = 'test-' + Date.now();
+
+        document.querySelectorAll('.sidebar nav a').forEach(a => {
+            a.addEventListener('click', e => {
+                e.preventDefault();
+                const page = a.dataset.page;
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.querySelectorAll('.sidebar nav a').forEach(l => l.classList.remove('active'));
+                document.getElementById('page-' + page).classList.add('active');
+                a.classList.add('active');
+                currentPage = page;
+                loadPage(page);
+            });
+        });
+
+        function toast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        async function api(path, opts) {
+            try {
+                const r = await fetch(API + path, opts);
+                if (!r.ok) throw new Error(r.statusText);
+                return await r.json();
+            } catch (e) {
+                console.error(e);
+                return null;
+            }
+        }
+
+        async function checkHealth() {
+            const h = await api('/health');
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            if (h) {
+                dot.className = 'status-dot ok';
+                text.textContent = `Online - ${h.environment}`;
+                document.getElementById('ovStatus').textContent = 'Healthy';
+            } else {
+                dot.className = 'status-dot err';
+                text.textContent = 'Offline';
+                document.getElementById('ovStatus').textContent = 'Error';
+            }
+        }
+
+        async function loadOverview() {
+            const [sessions, calls, faq] = await Promise.all([
+                api('/api/sessions'), api('/api/calls'), api('/api/faq'),
+            ]);
+            const active = sessions ? sessions.filter(s => s.state === 'active').length : 0;
+            document.getElementById('ovActive').textContent = active;
+            document.getElementById('ovTotal').textContent = calls ? calls.length : 0;
+            document.getElementById('ovFaq').textContent = faq ? faq.length : 0;
+            const el = document.getElementById('ovRecentCalls');
+            if (calls && calls.length > 0) {
+                el.innerHTML = renderCallsTable(calls.slice(-5).reverse());
+            }
+        }
+
+        function renderCallsTable(calls) {
+            if (!calls.length) return '<div class="empty">No calls</div>';
+            let html = '<table><tr><th>Call ID</th><th>Phone</th><th>Language</th><th>State</th><th>Started</th></tr>';
+            for (const c of calls) {
+                const badge = c.state === 'completed' ? 'green' : c.state === 'active' ? 'blue' : 'yellow';
+                html += `<tr>
+                    <td style="font-family:monospace;font-size:12px">${(c.call_id||'').substring(0,12)}...</td>
+                    <td>${c.phone_number || '-'}</td>
+                    <td>${(c.language||'').toUpperCase()}</td>
+                    <td><span class="badge ${badge}">${c.state}</span></td>
+                    <td>${new Date(c.started_at).toLocaleTimeString()}</td>
+                </tr>`;
+            }
+            return html + '</table>';
+        }
+
+        async function sendChat() {
+            const input = document.getElementById('chatInput');
+            const msg = input.value.trim();
+            if (!msg) return;
+            input.value = '';
+
+            const messages = document.getElementById('chatMessages');
+            if (messages.querySelector('.empty')) messages.innerHTML = '';
+
+            messages.innerHTML += `<div class="chat-msg"><span class="role user">You</span><span class="text">${escapeHtml(msg)}</span></div>`;
+            messages.innerHTML += `<div class="chat-msg" id="loading"><span class="role assistant">AI</span><span class="text" style="color:var(--text-dim)">Thinking...</span></div>`;
+            messages.scrollTop = messages.scrollHeight;
+
+            const lang = document.getElementById('testLang').value;
+            const data = await api('/api/test-call', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ message: msg, language: lang, call_id: testCallId }),
+            });
+
+            const loading = document.getElementById('loading');
+            if (loading) loading.remove();
+
+            if (data && data.response) {
+                messages.innerHTML += `<div class="chat-msg"><span class="role assistant">AI</span><span class="text">${escapeHtml(data.response)}</span></div>`;
+            } else {
+                messages.innerHTML += `<div class="chat-msg"><span class="role assistant">AI</span><span class="text" style="color:var(--red)">Error: No response</span></div>`;
+            }
+            messages.scrollTop = messages.scrollHeight;
+        }
+
+        function escapeHtml(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        }
+
+        async function loadSessions() {
+            const sessions = await api('/api/sessions');
+            const el = document.getElementById('sessionsTable');
+            if (!sessions || !sessions.length) { el.innerHTML = '<div class="empty">No active sessions</div>'; return; }
+            let html = '<table><tr><th>Call ID</th><th>Phone</th><th>Language</th><th>State</th><th>Started</th><th></th></tr>';
+            for (const s of sessions) {
+                const badge = s.state === 'active' ? 'green' : s.state === 'completed' ? 'yellow' : 'red';
+                html += `<tr>
+                    <td style="font-family:monospace;font-size:12px">${s.call_id.substring(0,16)}</td>
+                    <td>${s.phone_number}</td>
+                    <td>${(s.language||'-').toUpperCase()}</td>
+                    <td><span class="badge ${badge}">${s.state}</span></td>
+                    <td>${new Date(s.started_at).toLocaleTimeString()}</td>
+                    <td><button class="btn btn-sm btn-outline" onclick="viewTranscript('${s.call_id}')">View</button></td>
+                </tr>`;
+            }
+            el.innerHTML = html + '</table>';
+        }
+
+        async function viewTranscript(callId) {
+            const s = await api('/api/sessions/' + callId);
+            const panel = document.getElementById('transcriptPanel');
+            const body = document.getElementById('transcriptBody');
+            panel.style.display = 'block';
+            if (!s || !s.transcript || !s.transcript.length) {
+                body.innerHTML = '<div class="empty">No transcript entries</div>';
+                return;
+            }
+            let html = '';
+            for (const t of s.transcript) {
+                html += `<div class="chat-msg"><span class="role ${t.role}">${t.role}</span><span class="text">${escapeHtml(t.text)}</span></div>`;
+            }
+            body.innerHTML = html;
+        }
+
+        async function loadCalls() {
+            const calls = await api('/api/calls');
+            const el = document.getElementById('callsTable');
+            if (!calls || !calls.length) { el.innerHTML = '<div class="empty">No call logs</div>'; return; }
+            el.innerHTML = renderCallsTable(calls);
+        }
+
+        async function loadFaq() {
+            const faq = await api('/api/faq');
+            const el = document.getElementById('faqTable');
+            if (!faq || !faq.length) { el.innerHTML = '<div class="empty">No FAQ items</div>'; return; }
+            let html = '<table><tr><th>ID</th><th>Question</th><th>Answer</th><th>Category</th><th>Lang</th></tr>';
+            for (const f of faq) {
+                const lang = f.language === 'ar' ? '<span class="badge blue">AR</span>' : '<span class="badge green">EN</span>';
+                html += `<tr>
+                    <td style="font-family:monospace;font-size:12px">${f.id}</td>
+                    <td>${escapeHtml(f.question)}</td>
+                    <td style="color:var(--text-dim);max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${escapeHtml(f.answer)}</td>
+                    <td>${f.category || '-'}</td><td>${lang}</td>
+                </tr>`;
+            }
+            el.innerHTML = html + '</table>';
+        }
+
+        async function refreshFaq() {
+            const r = await fetch(API + '/api/faq/refresh', { method: 'POST' });
+            if (r.ok) { toast('FAQ store re-indexed'); loadFaq(); }
+            else { toast('Failed to re-index'); }
+        }
+
+        function loadPage(page) {
+            switch (page) {
+                case 'overview': loadOverview(); break;
+                case 'test': document.getElementById('chatInput').focus(); break;
+                case 'sessions': loadSessions(); break;
+                case 'calls': loadCalls(); break;
+                case 'faq': loadFaq(); break;
+            }
+        }
+
+        checkHealth();
+        loadOverview();
+        setInterval(() => {
+            checkHealth();
+            if (currentPage === 'sessions') loadSessions();
+        }, 5000);
+    </script>
+</body>
+</html>
