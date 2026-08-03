@@ -28,6 +28,13 @@ class Settings(BaseSettings):
     ollama_url: str = "http://localhost:11434"
     ollama_model: str = "qwen2.5:1.5b"
 
+    llm_provider: str = "local"
+    azure_openai_endpoint: str = ""
+    azure_openai_key: str = ""
+    azure_openai_deployment: str = "gpt-4o-mini"
+    azure_openai_api_version: str = "2024-06-01"
+    azure_openai_timeout: float = 30.0
+
     embedding_model: str = "all-MiniLM-L6-v2"
     embedding_local_only: bool = False
 

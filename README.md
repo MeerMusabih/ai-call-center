@@ -95,6 +95,8 @@ Edit `.env` and set:
 | Variable | Description |
 |----------|-------------|
 | `OLLAMA_MODEL` | Ollama model name (e.g. `qwen2.5:1.5b`) |
+| `LLM_PROVIDER` | `local` (Ollama) or `azure_openai` (Azure primary, auto-fallback to local) |
+| `AZURE_OPENAI_ENDPOINT` / `AZURE_OPENAI_KEY` / `AZURE_OPENAI_DEPLOYMENT` | Azure OpenAI connection (only needed when `LLM_PROVIDER=azure_openai`) |
 | `TWILIO_*` | Optional — only needed for real phone calls |
 | `TTS_VOICE_EN` / `TTS_VOICE_AR` | Voice names for English / Arabic |
 

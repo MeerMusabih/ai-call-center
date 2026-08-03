@@ -1,6 +1,6 @@
 import logging
 from app.faq.store import FAQStore
-from app.ai.gemini import OllamaChat as GeminiChat
+from app.ai.router import HybridChat
 from app.models.schemas import TranscriptEntry
 
 logger = logging.getLogger(__name__)
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 class RAGPipeline:
     def __init__(self, faq_store=None):
         self.faq_store = faq_store or FAQStore()
-        self.gemini = GeminiChat()
+        self.gemini = HybridChat()
 
     async def process_message(
         self,
