@@ -3,6 +3,7 @@ import asyncio
 import edge_tts
 import tempfile
 import os
+from typing import AsyncIterator
 
 from app.config import settings
 from app.utils.ffmpeg import ensure_ffmpeg_on_path
@@ -53,3 +54,12 @@ class TextToSpeech:
         communicate = edge_tts.Communicate(text, voice)
         await communicate.save(output_path)
         return output_path
+
+    async def stream_audio(self, text: str, language: str) -> AsyncIterator[bytes]:
+        """Stream MP3 audio chunks as they are synthesized."""
+        voice = self.voices.get(language, self.voices["en"])
+
+        communicate = edge_tts.Communicate(text, voice)
+        async for chunk in communicate.stream():
+            if chunk.get("type") == "audio" and chunk.get("data"):
+                yield chunk["data"]

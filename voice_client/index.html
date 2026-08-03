@@ -386,30 +386,13 @@
 
     async function playTTS(text) {
         speaking = true;
-        try {
-            const r = await fetch('/api/tts', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ text: text, language: lang })
-            });
-            const j = await r.json();
-            const bin = atob(j.audio);
-            const pcm = new Uint8Array(bin.length);
-            for (let i = 0; i < bin.length; i++) pcm[i] = bin.charCodeAt(i);
-            const int16 = new Int16Array(pcm.buffer);
-            const n = int16.length;
-            const buf = audioCtx.createBuffer(1, n, 24000);
-            const ch = buf.getChannelData(0);
-            for (let i = 0; i < n; i++) ch[i] = int16[i] / 32768;
-            await new Promise(resolve => {
-                const src = audioCtx.createBufferSource();
-                src.buffer = buf;
-                src.connect(audioCtx.destination);
-                src.onended = resolve;
-                src.start();
-            });
-        } catch (e) {
-            addSys('Audio playback failed: ' + e.message);
-        }
+        const url = '/api/tts/stream?text=' + encodeURIComponent(text) + '&language=' + lang;
+        await new Promise(resolve => {
+            const el = new Audio(url);
+            el.onended = () => { el.src = ''; resolve(); };
+            el.onerror = () => { el.src = ''; addSys('Audio playback failed'); resolve(); };
+            el.play().catch(() => { el.src = ''; addSys('Audio playback failed'); resolve(); });
+        });
         speaking = false;
         $('meterFill').style.width = '0%';
     }

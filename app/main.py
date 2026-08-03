@@ -5,7 +5,7 @@ from datetime import datetime
 
 from fastapi import FastAPI, WebSocket, Form, Body
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import PlainTextResponse
+from fastapi.responses import PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from twilio.twiml.voice_response import VoiceResponse
 
@@ -182,6 +182,18 @@ async def synthesize_speech(body: dict = Body(...)):
         "sample_width": 2,
         "channels": 1,
     }
+
+
+@app.get("/api/tts/stream")
+async def synthesize_speech_stream(text: str, language: str = "en"):
+    if not text:
+        return {"error": "text is required"}
+
+    return StreamingResponse(
+        tts.stream_audio(text, language),
+        media_type="audio/mpeg",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
 
 
 @app.get("/api/calls")
