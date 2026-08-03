@@ -195,7 +195,9 @@
     let sourceNode = null;
     let scriptNode = null;
     let mediaStream = null;
-    let pcmChunks = [];
+    let ws = null;
+    let pendingStt = null;
+    let recordedSamples = 0;
     let lastLatency = null;
     let turnStart = null;
 
@@ -207,7 +209,12 @@
     }
     langSeg.addEventListener('click', e => {
         const b = e.target.closest('button');
-        if (b) setLang(b.dataset.lang);
+        if (b) {
+            setLang(b.dataset.lang);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({type: 'config', language: lang}));
+            }
+        }
     });
     setLang(lang);
 
@@ -281,11 +288,50 @@
         return out;
     }
 
+    function ensureWs() {
+        return new Promise((resolve, reject) => {
+            if (ws && ws.readyState === WebSocket.OPEN) { resolve(); return; }
+            ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host + '/ws/stt');
+            ws.binaryType = 'arraybuffer';
+            ws.onopen = () => {
+                ws.send(JSON.stringify({type: 'config', language: lang}));
+                resolve();
+            };
+            ws.onerror = () => { ws = null; reject(new Error('stt-ws')); };
+            ws.onclose = () => {
+                if (pendingStt) { pendingStt.reject(new Error('stt-ws')); pendingStt = null; }
+                ws = null;
+            };
+            ws.onmessage = ev => {
+                if (pendingStt) {
+                    const data = JSON.parse(ev.data);
+                    pendingStt.resolve(data.text || '');
+                    pendingStt = null;
+                }
+            };
+        });
+    }
+
+    function sttDone() {
+        return new Promise((resolve, reject) => {
+            pendingStt = { resolve, reject };
+            ws.send(JSON.stringify({type: 'done'}));
+            setTimeout(() => {
+                if (pendingStt) { pendingStt.reject(new Error('stt-timeout')); pendingStt = null; }
+            }, 20000);
+        });
+    }
+
     function onAudio(e) {
         if (!recording || speaking) return;
         const chan = e.inputBuffer.getChannelData(0);
         const mono = downsampleTo16k(chan);
-        pcmChunks.push(mono);
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            const pcm = new Int16Array(mono.length);
+            for (let i = 0; i < mono.length; i++) pcm[i] = Math.max(-1, Math.min(1, mono[i])) * 32767;
+            ws.send(pcm.buffer);
+        }
+        recordedSamples += mono.length;
         let rms = 0;
         for (let i = 0; i < mono.length; i++) rms += mono[i] * mono[i];
         rms = Math.sqrt(rms / mono.length);
@@ -295,23 +341,14 @@
         fill.className = pct > 78 ? 'hot' : '';
     }
 
-    function bytesToB64(bytes) {
-        const CHUNK = 0x8000;
-        let bin = '';
-        for (let i = 0; i < bytes.length; i += CHUNK) {
-            bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
-        }
-        return btoa(bin);
-    }
-
     function startTalk() {
         if (recording || speaking) return;
         if (!navigator.mediaDevices) { setStatus('Microphone not supported in this browser', 'err'); return; }
-        initAudio().then(() => {
+        initAudio().then(() => ensureWs()).then(() => {
             if (!recording) return;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             recording = true;
-            pcmChunks = [];
+            recordedSamples = 0;
             $('ptt').classList.add('recording');
             $('ptt').querySelector('.ptt-label').textContent = '';
             $('ptt').insertAdjacentHTML('beforeend', '<span class="rec-blink"></span>');
@@ -319,12 +356,12 @@
             $('callMeta').textContent = 'RECORDING';
         }).catch(err => {
             recording = false;
-            setStatus(err.name === 'NotAllowedError' ? 'Microphone access denied' : 'Microphone error: ' + err.message, 'err');
+            setStatus(err.message === 'stt-ws' ? 'Voice channel unavailable — retry.' : 'Microphone error: ' + err.message, 'err');
         });
         recording = true;
     }
 
-    function stopTalk() {
+    async function stopTalk() {
         if (!recording) return;
         recording = false;
         const dot = $('ptt').querySelector('.rec-blink');
@@ -332,33 +369,28 @@
         $('ptt').classList.remove('recording');
         $('ptt').querySelector('.ptt-label').textContent = 'Hold to talk';
         $('meterFill').style.width = '0%';
+        if (recordedSamples < 4800) {
+            setStatus('Nothing heard — hold and speak a little longer.', 'err');
+            $('callMeta').textContent = 'SESSION READY';
+            return;
+        }
         setStatus('Recognizing…', 'live');
         $('callMeta').textContent = 'PROCESSING';
-        sendUtterance();
-    }
-
-    async function sendUtterance() {
-        let total = 0;
-        const all = new Float32Array(pcmChunks.reduce((n, c) => n + c.length, 0));
-        for (const c of pcmChunks) { all.set(c, total); total += c.length; }
-        if (total < 4800) { setStatus('Nothing heard — hold and speak a little longer.', 'err'); $('callMeta').textContent = 'SESSION READY'; return; }
-        const pcm16 = new Int16Array(total);
-        for (let i = 0; i < total; i++) pcm16[i] = Math.max(-1, Math.min(1, all[i])) * 32767;
-        const b64 = bytesToB64(new Uint8Array(pcm16.buffer));
         turnStart = performance.now();
 
         let text;
         try {
-            const r = await fetch('/api/stt', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ audio: b64, language: lang, sample_rate: 16000 })
-            });
-            const j = await r.json();
-            text = (j.text || '').trim();
+            text = ((await sttDone()) || '').trim();
         } catch (e) {
-            setStatus('Server unreachable.', 'err'); $('callMeta').textContent = 'SESSION READY'; return;
+            setStatus('Voice channel unavailable — try again.', 'err');
+            $('callMeta').textContent = 'SESSION READY';
+            return;
         }
-        if (!text) { setStatus('Could not recognize speech — try again.', 'err'); $('callMeta').textContent = 'SESSION READY'; return; }
+        if (!text) {
+            setStatus('Could not recognize speech — try again.', 'err');
+            $('callMeta').textContent = 'SESSION READY';
+            return;
+        }
         addRow('user', text, new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'}));
 
         setStatus('Agent thinking…', 'live');

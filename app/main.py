@@ -1,9 +1,10 @@
 import logging
 import os
+import json
 import uuid
 from datetime import datetime
 
-from fastapi import FastAPI, WebSocket, Form, Body
+from fastapi import FastAPI, WebSocket, Form, Body, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
@@ -99,6 +100,39 @@ async def call_status(
 @app.websocket("/ws/voice/{call_id}")
 async def voice_websocket(websocket: WebSocket, call_id: str):
     await voice_handler.handle_connection(websocket, call_id)
+
+
+@app.websocket("/ws/stt")
+async def ws_stt(websocket: WebSocket):
+    await websocket.accept()
+    language = "en"
+    audio = bytearray()
+    try:
+        while True:
+            message = await websocket.receive()
+            if message["type"] == "websocket.disconnect":
+                break
+            if message.get("bytes") is not None:
+                audio.extend(message["bytes"])
+            elif message.get("text") is not None:
+                data = json.loads(message["text"])
+                msg_type = data.get("type")
+                if msg_type == "config":
+                    language = data.get("language", "en")
+                elif msg_type == "reset":
+                    audio.clear()
+                elif msg_type == "done":
+                    text = await stt.transcribe_audio(
+                        bytes(audio), language, sample_rate=16000
+                    )
+                    audio.clear()
+                    await websocket.send_text(
+                        json.dumps({"type": "text", "text": text.strip()})
+                    )
+    except WebSocketDisconnect:
+        pass
+    except Exception as e:
+        logger.error(f"WS /ws/stt error: {e}")
 
 
 @app.post("/api/test-call")
