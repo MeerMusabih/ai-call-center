@@ -8,7 +8,12 @@ _COMMON_FFMPEG_BIN_DIRS = [
     r"C:\Program Files\ffmpeg\bin",
     r"C:\ffmpeg\bin",
     r"C:\ProgramData\chocolatey\bin",
+    "/usr/bin",
+    "/usr/local/bin",
+    "/opt/ffmpeg/bin",
 ]
+
+_FFMPEG_BIN_NAMES = ["ffmpeg.exe", "ffmpeg"]
 
 
 def _find_ffmpeg_dir() -> str | None:
@@ -16,8 +21,9 @@ def _find_ffmpeg_dir() -> str | None:
         return None
 
     for d in _COMMON_FFMPEG_BIN_DIRS:
-        if os.path.isfile(os.path.join(d, "ffmpeg.exe")):
-            return d
+        for name in _FFMPEG_BIN_NAMES:
+            if os.path.isfile(os.path.join(d, name)):
+                return d
 
     return None
 
@@ -27,7 +33,9 @@ def ensure_ffmpeg_on_path(custom_dir: str | None = None) -> None:
     if shutil.which("ffmpeg"):
         return
 
-    if custom_dir and os.path.isfile(os.path.join(custom_dir, "ffmpeg.exe")):
+    if custom_dir and any(
+        os.path.isfile(os.path.join(custom_dir, name)) for name in _FFMPEG_BIN_NAMES
+    ):
         os.environ["PATH"] = custom_dir + os.pathsep + os.environ.get("PATH", "")
         logger.info("Using FFmpeg from %s", custom_dir)
         return

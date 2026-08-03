@@ -11,6 +11,7 @@ from app.faq.store import FAQStore
 from app.voice.stt import SpeechToText
 from app.voice.tts import TextToSpeech
 from app.utils.audio import convert_mulaw_to_pcm, convert_pcm_to_mulaw
+from app.utils.call_logger import CallLogger
 from app.models.schemas import TranscriptEntry, Language
 from datetime import datetime
 
@@ -20,6 +21,7 @@ faq_store = FAQStore()
 rag = RAGPipeline(faq_store=faq_store)
 stt = SpeechToText()
 tts = TextToSpeech()
+call_logger = CallLogger()
 
 
 class VoiceWebSocketHandler:
@@ -44,7 +46,7 @@ class VoiceWebSocketHandler:
         try:
             greeting = await rag.get_greeting(language)
             greeting_audio = await tts.synthesize(greeting, language)
-            mulaw_audio = convert_pcm_to_mulaw(greeting_audio, settings.stt_sample_rate)
+            mulaw_audio = convert_pcm_to_mulaw(greeting_audio, settings.tts_sample_rate)
             await self._send_media(websocket, mulaw_audio, stream_sid)
 
             session.transcript.append(TranscriptEntry(
@@ -96,6 +98,7 @@ class VoiceWebSocketHandler:
                 del self.active_connections[call_id]
             session.state = CallState.COMPLETED
             session.ended_at = datetime.now()
+            call_logger.log_call(session)
 
     async def _send_media(self, websocket: WebSocket, mulaw_audio: bytes, stream_sid: str):
         if stream_sid:

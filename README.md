@@ -47,16 +47,25 @@ Runs fully **on-premise / local** — no cloud AI APIs required. Every component
 
 ## Requirements
 
-- **Windows 10/11** (mic support) or any OS with Python
+- **Windows 10/11** (mic support) or **Ubuntu/Debian Linux** (server / VM)
 - **Python 3.10–3.12**
 - **Ollama** — https://ollama.com/download
-- **FFmpeg** — required by audio processing, must be on `PATH` (note: `app/main.py` currently references a machine-specific FFmpeg path — adjust it for your machine or add `ffmpeg` to `PATH` and edit that line)
+- **FFmpeg** — required by audio processing (must be on `PATH`; the app auto-detects it)
 - **~8 GB RAM** recommended
 - Microphone and speakers for the voice chat demo
 
 ---
 
 ## Setup
+
+### Linux (Ubuntu/Debian)
+
+```bash
+./setup.sh     # installs deps, Ollama, model pull, venv, .env
+./start.sh     # starts Ollama + FastAPI server on port 8000
+```
+
+### Windows
 
 ### 1. Install Ollama and pull the LLM
 

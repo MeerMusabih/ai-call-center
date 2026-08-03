@@ -178,7 +178,7 @@ async def synthesize_speech(body: dict = Body(...)):
     audio_data = await tts.synthesize(text, language)
     return {
         "audio": base64.b64encode(audio_data).decode("ascii"),
-        "sample_rate": 24000,
+        "sample_rate": settings.tts_sample_rate,
         "sample_width": 2,
         "channels": 1,
     }
@@ -217,7 +217,11 @@ async def get_faq():
 
 
 @app.post("/api/faq/ingest")
-async def ingest_faq(file_path: str):
+async def ingest_faq(body: dict = Body(...)):
+    file_path = body.get("file_path")
+    if not file_path:
+        return {"error": "file_path is required"}
+
     from app.faq.ingestion import FAQIngestion
     ingestion = FAQIngestion()
     items = ingestion.load_file(file_path)

@@ -20,13 +20,13 @@ def build_ivr_response() -> str:
     gather = Gather(
         num_digits=1,
         timeout=settings.ivr_timeout_seconds,
-        action=f"{settings.twilio_webhook_url}/ivr/selected",
+        action=f"{settings.twilio_webhook_url}/webhook/ivr/selected",
         method="POST",
     )
     gather.say(GREETING_EN, language="en-US")
     gather.say(IVR_PROMPT_EN, language="en-US")
     response.append(gather)
-    response.redirect(f"{settings.twilio_webhook_url}/ivr/timeout", method="POST")
+    response.redirect(f"{settings.twilio_webhook_url}/webhook/ivr/timeout", method="POST")
     return str(response)
 
 
@@ -70,13 +70,13 @@ def build_timeout_response(retry_count: int, language: str = "en") -> str:
     gather = Gather(
         num_digits=1,
         timeout=settings.ivr_timeout_seconds,
-        action=f"{settings.twilio_webhook_url}/ivr/selected",
+        action=f"{settings.twilio_webhook_url}/webhook/ivr/selected",
         method="POST",
     )
     gather.say(prompt, language=lang_attr)
     response.append(gather)
     response.redirect(
-        f"{settings.twilio_webhook_url}/ivr/timeout?retry={retry_count + 1}",
+        f"{settings.twilio_webhook_url}/webhook/ivr/timeout?retry={retry_count + 1}",
         method="POST",
     )
     return str(response)

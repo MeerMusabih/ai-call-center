@@ -13,6 +13,6 @@ faster-whisper
 edge-tts
 sentence-transformers
 chromadb
-audioop-lts
+audioop-lts; python_version >= '3.13'
 sounddevice
 soundfile

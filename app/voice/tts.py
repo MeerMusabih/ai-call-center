@@ -36,7 +36,7 @@ class TextToSpeech:
             await communicate.save(temp_path)
 
             audio = AudioSegment.from_mp3(temp_path)
-            audio = audio.set_frame_rate(24000).set_channels(1).set_sample_width(2)
+            audio = audio.set_frame_rate(settings.tts_sample_rate).set_channels(1).set_sample_width(2)
 
             return audio.raw_data
 

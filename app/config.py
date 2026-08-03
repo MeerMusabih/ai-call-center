@@ -26,15 +26,16 @@ class Settings(BaseSettings):
     tts_voice_ar: str = "ar-SA-ZariyahNeural"
 
     ollama_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
+    ollama_model: str = "qwen2.5:1.5b"
 
     embedding_model: str = "all-MiniLM-L6-v2"
+    embedding_local_only: bool = False
 
     stt_sample_rate: int = 8000
     stt_language_en: str = "en"
     stt_language_ar: str = "ar"
 
-    tts_sample_rate: int = 8000
+    tts_sample_rate: int = 24000
 
     ffmpeg_path: str = ""
 

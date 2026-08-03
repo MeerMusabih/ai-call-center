@@ -1,4 +1,4 @@
-import asyncio, os, sys, time, tempfile, base64
+import asyncio, os, sys, tempfile, base64
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, BASE_DIR)
@@ -78,12 +78,11 @@ async def main():
             break
 
         print("Listening... (talk, stops when you pause)")
-        audio, peak = await record_until_silence()
+        audio, _peak = await record_until_silence()
         if audio is None or len(audio) < SAMPLE_RATE * 0.3:
-            print(f"(nothing heard - mic level {peak})")
+            print("(nothing heard - try speaking louder)")
             continue
 
-        t0 = time.time()
         audio_bytes = audio.astype(np.int16).tobytes()
         r = httpx.post(f"{SERVER}/api/stt",
                        json={"audio": base64.b64encode(audio_bytes).decode("ascii"),
@@ -101,7 +100,7 @@ async def main():
         r = httpx.post(f"{SERVER}/api/test-call",
                        json={"message": text, "language": lang}, timeout=120)
         answer = r.json()["response"]
-        print(f"AI:  {answer}  ({time.time()-t0:.0f}s)")
+        print(f"AI:  {answer}")
 
         r = httpx.post(f"{SERVER}/api/tts",
                        json={"text": answer, "language": lang}, timeout=60)

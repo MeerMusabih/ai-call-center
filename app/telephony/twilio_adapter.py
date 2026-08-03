@@ -28,7 +28,7 @@ class TwilioAdapter(TelephonyAdapter):
         gather = Gather(
             num_digits=1,
             timeout=settings.ivr_timeout_seconds,
-            action=f"{settings.twilio_webhook_url}/ivr/selected",
+            action=f"{settings.twilio_webhook_url}/webhook/ivr/selected",
             method="POST",
         )
         gather.say(
@@ -36,7 +36,7 @@ class TwilioAdapter(TelephonyAdapter):
             language="en-US",
         )
         response.append(gather)
-        response.redirect(f"{settings.twilio_webhook_url}/ivr/timeout", method="POST")
+        response.redirect(f"{settings.twilio_webhook_url}/webhook/ivr/timeout", method="POST")
         return {"twiml": str(response)}
 
     async def hangup_call(self, call_id: str) -> dict:
@@ -54,7 +54,7 @@ class TwilioAdapter(TelephonyAdapter):
         gather = Gather(
             num_digits=num_digits,
             timeout=timeout,
-            action=f"{settings.twilio_webhook_url}/dtmf",
+            action=f"{settings.twilio_webhook_url}/webhook/ivr/selected",
             method="POST",
         )
         response.append(gather)
