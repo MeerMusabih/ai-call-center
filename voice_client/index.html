@@ -418,15 +418,33 @@
 
     async function playTTS(text) {
         speaking = true;
-        const url = '/api/tts/stream?text=' + encodeURIComponent(text) + '&language=' + lang;
-        await new Promise(resolve => {
-            const el = new Audio(url);
-            el.onended = () => { el.src = ''; resolve(); };
-            el.onerror = () => { el.src = ''; addSys('Audio playback failed'); resolve(); };
-            el.play().catch(() => { el.src = ''; addSys('Audio playback failed'); resolve(); });
-        });
-        speaking = false;
         $('meterFill').style.width = '0%';
+        try {
+            const url = '/api/tts/stream?text=' + encodeURIComponent(text) + '&language=' + lang;
+            const res = await fetch(url);
+            if (!res.ok) throw new Error('HTTP ' + res.status);
+            const buf = await res.arrayBuffer();
+            const blob = new Blob([buf], { type: 'audio/mpeg' });
+            const objectUrl = URL.createObjectURL(blob);
+            await new Promise(resolve => {
+                const el = new Audio();
+                let settled = false;
+                const done = err => {
+                    if (settled) return;
+                    settled = true;
+                    URL.revokeObjectURL(objectUrl);
+                    if (err) addSys('Audio playback failed: ' + err);
+                    resolve();
+                };
+                el.onended = () => done(null);
+                el.onerror = () => done('code ' + (el.error ? el.error.code : '?'));
+                el.src = objectUrl;
+                el.play().then(() => {}, e => done(e && e.name ? e.name : 'play-rejected'));
+            });
+        } catch (e) {
+            addSys('Audio playback failed: ' + (e && e.message ? e.message : e));
+        }
+        speaking = false;
     }
 
     const ptt = $('ptt');
