@@ -10,7 +10,7 @@ Runs fully **on-premise / local** — no cloud AI APIs required. Every component
 
 - **IVR menu** with language selection (English / Arabic) and auto-answer on FAQ topics
 - **FAQ retrieval-augmented answering** from a local vector store (ChromaDB)
-- **Real-time voice chat** client (`voice_chat.bat`) for live spoken Q&A through the microphone
+- **Real-time voice chat** — browser click-to-talk at `/voice/` (no Twilio needed) or the `voice_chat.py` mic client, for live spoken Q&A
 - **Local speech pipeline**: faster-whisper (STT) + edge-tts (TTS) + Ollama LLM
 - **Twilio Media Streams integration** for real phone calls (configurable webhook)
 - **Web dashboard** served at `/dashboard/` with live call stats
@@ -124,6 +124,7 @@ start.bat
 
 Then open:
 
+- Voice demo (mic): http://localhost:8000/voice/  — browser click-to-talk, no Twilio needed
 - Dashboard: http://localhost:8000/dashboard/
 - Health: http://localhost:8000/health
 - API docs: http://localhost:8000/docs

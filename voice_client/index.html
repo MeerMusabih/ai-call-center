@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contact Center - Voice</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+        --line: #e4e7eb;
+        --line-soft: #eef0f3;
+        --ink: #1b1f24;
+        --ink-2: #3d434b;
+        --muted: #7a8189;
+        --accent: #2563eb;
+        --accent-dark: #1d4ed8;
+        --danger: #dc2626;
+        --ok: #16a34a;
+        --warn: #d97706;
+        --bar: #101418;
+        --bar-line: #262b31;
+        --shadow: 0 1px 2px rgba(16,20,24,.06);
+        --shadow-lg: 0 12px 32px rgba(16,20,24,.12);
+    }
+    html, body { height: 100%; }
+    body {
+        font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+        background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    .topbar {
+        background: var(--bar); color: #dfe3e8; height: 54px;
+        display: flex; align-items: center; padding: 0 22px; gap: 18px;
+        border-bottom: 1px solid var(--bar-line);
+    }
+    .brand { font-size: 15px; font-weight: 600; color: #f2f4f6; letter-spacing: .2px; }
+    .brand small { display: block; font-size: 10.5px; font-weight: 400; color: #8b929b; letter-spacing: .4px; margin-top: 1px; }
+    .topbar .sep { width: 1px; height: 22px; background: var(--bar-line); }
+    .topbar .crumb { color: #9aa1aa; font-size: 12.5px; }
+    .topbar .crumb b { color: #dfe3e8; font-weight: 600; }
+    .spacer { flex: 1; }
+
+    .seg { display: flex; background: #1b2026; border: 1px solid var(--bar-line); border-radius: 7px; padding: 2px; }
+    .seg button {
+        border: 0; background: transparent; color: #9aa1aa; font-family: inherit;
+        font-size: 12.5px; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: 500;
+    }
+    .seg button.on { background: #2a313a; color: #f2f4f6; }
+
+    .status-pill { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9aa1aa; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; }
+    .dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(22,163,74,.18); }
+    .dot.err { background: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,.18); }
+    .clock { font-size: 12.5px; color: #9aa1aa; font-variant-numeric: tabular-nums; }
+
+    .layout { max-width: 1120px; margin: 0 auto; padding: 26px 22px 60px; display: grid; grid-template-columns: 1fr 400px; gap: 22px; }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+    .card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 13px 18px; border-bottom: 1px solid var(--line);
+    }
+    .card-head h2 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
+    .card-head .meta { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; }
+
+    .console { padding: 34px 30px 26px; display: flex; flex-direction: column; align-items: center; }
+    .status-line { font-size: 13px; color: var(--muted); min-height: 20px; text-align: center; font-weight: 500; }
+    .status-line.live { color: var(--accent); }
+    .status-line.ok { color: var(--ok); }
+    .status-line.err { color: var(--danger); }
+
+    .ptt-wrap { margin: 26px 0 20px; }
+    .ptt {
+        width: 148px; height: 148px; border-radius: 50%;
+        background: var(--surface); border: 1.5px solid #c9ced4;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 7px;
+        cursor: pointer; user-select: none; transition: border-color .12s, background .12s, box-shadow .12s;
+        box-shadow: 0 1px 3px rgba(16,20,24,.08);
+    }
+    .ptt .mic-icon { width: 26px; height: 26px; }
+    .ptt .ptt-label { font-size: 11.5px; font-weight: 600; letter-spacing: 1.1px; text-transform: uppercase; color: var(--ink-2); }
+    .ptt:hover { border-color: var(--accent); }
+    .ptt.recording {
+        background: #fff1f2; border-color: var(--danger);
+        box-shadow: 0 0 0 6px rgba(220,38,38,.10), 0 4px 16px rgba(220,38,38,.18);
+    }
+    .ptt.recording .ptt-label { color: var(--danger); }
+    .ptt.recording .rec-blink { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); animation: blink 1s steps(2,start) infinite; }
+    @keyframes blink { to { visibility: hidden; } }
+
+    .meter { width: 240px; height: 6px; background: var(--line-soft); border-radius: 999px; overflow: hidden; margin-bottom: 18px; }
+    .meter > div { height: 100%; width: 0%; background: var(--accent); border-radius: 999px; transition: width .06s linear; }
+    .meter > div.hot { background: var(--danger); }
+
+    .console-row { display: flex; gap: 26px; font-size: 12px; color: var(--muted); }
+    .console-row .kv b { display: block; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; margin-top: 2px; }
+    .console-row .kv { min-width: 96px; }
+
+    .transcript { height: 520px; display: flex; flex-direction: column; }
+    .tlog { flex: 1; overflow-y: auto; padding: 16px 18px; display: flex; flex-direction: column; gap: 14px; }
+    .trow { display: flex; gap: 10px; }
+    .trow .who { flex-shrink: 0; width: 24px; height: 24px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-size: 10.5px; font-weight: 700; margin-top: 2px; }
+    .trow.user .who { background: #e8f0fe; color: var(--accent-dark); }
+    .trow.agent .who { background: #e2e8f0; color: var(--ink-2); }
+    .trow.sys .who { background: transparent; width: auto; height: auto; }
+    .trow .body { flex: 1; min-width: 0; }
+    .trow .text { font-size: 13px; color: var(--ink); background: var(--bg); border: 1px solid var(--line-soft); padding: 9px 12px; border-radius: 9px; line-height: 1.55; }
+    .trow.user .text { background: #f0f6ff; border-color: #d6e4ff; }
+    .trow .stamp { font-size: 10.5px; color: #a6adb5; margin-top: 4px; font-variant-numeric: tabular-nums; }
+    .trow.sys .text { background: transparent; border: 0; color: var(--muted); font-size: 12px; padding: 2px 0; }
+    .tlog .empty { margin: auto; color: #a6adb5; font-size: 12.5px; text-align: center; line-height: 1.8; }
+
+    .hint { grid-column: 1 / -1; text-align: center; color: var(--muted); font-size: 12.5px; padding-top: 2px; }
+    .hint kbd { background: var(--surface); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 5px; padding: 1px 7px; font-family: inherit; font-size: 11.5px; color: var(--ink-2); }
+
+    .banner {
+        max-width: 1120px; margin: 14px auto 0; padding: 11px 18px; border-radius: 10px;
+        background: #fffbeb; border: 1px solid #fde68a; color: #92400e; font-size: 13px;
+    }
+    .hidden { display: none; }
+
+    @media (max-width: 900px) {
+        .layout { grid-template-columns: 1fr; }
+        .transcript { height: 420px; }
+    }
+</style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="brand">Contact Center<small>Voice Demo Console</small></div>
+        <div class="sep"></div>
+        <div class="crumb"><b>Agent Desktop</b> &nbsp;/&nbsp; Voice</div>
+        <div class="spacer"></div>
+        <div class="seg" id="langSeg">
+            <button data-lang="en" class="on">English</button>
+            <button data-lang="ar">العربية</button>
+        </div>
+        <div class="status-pill"><span class="dot" id="srvDot"></span><span id="srvText">Checking server…</span></div>
+        <div class="clock" id="clock">00:00:00</div>
+    </div>
+
+    <div class="banner hidden" id="insecureBanner">Voice capture requires a secure connection. Open this page over <b>https://</b> (or from localhost).</div>
+
+    <div class="layout">
+        <div class="card">
+            <div class="card-head">
+                <h2>Call Console</h2>
+                <span class="meta" id="callMeta">SESSION READY</span>
+            </div>
+            <div class="console">
+                <div class="status-line" id="status">Hold to talk. Your question is answered by the agent.</div>
+                <div class="ptt-wrap">
+                    <div class="ptt" id="ptt" role="button" tabindex="0" aria-label="Hold to talk">
+                        <svg class="mic-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 2a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3z"/>
+                            <path d="M19 10v1a7 7 0 0 1-14 0v-1"/>
+                            <line x1="12" y1="18" x2="12" y2="22"/>
+                        </svg>
+                        <span class="ptt-label">Hold to talk</span>
+                    </div>
+                </div>
+                <div class="meter"><div id="meterFill"></div></div>
+                <div class="console-row">
+                    <div class="kv">Language<b id="langVal">ENGLISH</b></div>
+                    <div class="kv">Last reply<b id="latencyVal">—</b></div>
+                    <div class="kv">Turn time<b id="turnVal">—</b></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card transcript">
+            <div class="card-head">
+                <h2>Conversation</h2>
+                <button class="btn-clear" id="clearBtn" style="border:0;background:none;color:#7a8189;font-family:inherit;font-size:12px;cursor:pointer;font-weight:500;">Clear</button>
+            </div>
+            <div class="tlog" id="tlog">
+                <div class="empty">Hold the button and ask a question.<br>Release when you finish speaking.</div>
+            </div>
+        </div>
+
+        <div class="hint">Press and hold <kbd>Space</kbd> to talk — release when done. Speak clearly at a normal volume.</div>
+    </div>
+
+<script>
+    const $ = id => document.getElementById(id);
+    const langSeg = $('langSeg');
+    let lang = localStorage.getItem('vc.lang') || 'en';
+    let sessionId = 'web-' + Date.now();
+    let recording = false;
+    let speaking = false;
+    let audioCtx = null;
+    let sourceNode = null;
+    let scriptNode = null;
+    let mediaStream = null;
+    let pcmChunks = [];
+    let lastLatency = null;
+    let turnStart = null;
+
+    function setLang(l) {
+        lang = l;
+        localStorage.setItem('vc.lang', l);
+        langSeg.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.lang === l));
+        $('langVal').textContent = l === 'ar' ? 'ARABIC' : 'ENGLISH';
+    }
+    langSeg.addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (b) setLang(b.dataset.lang);
+    });
+    setLang(lang);
+
+    if (!window.isSecureContext) $('insecureBanner').classList.remove('hidden');
+
+    function addRow(role, text, stamp) {
+        const log = $('tlog');
+        const empty = log.querySelector('.empty');
+        if (empty) empty.remove();
+        const row = document.createElement('div');
+        row.className = 'trow ' + role;
+        const who = role === 'user' ? 'YOU' : role === 'agent' ? 'AI' : '';
+        const label = role === 'sys' ? '' : `<div class="who">${who}</div>`;
+        row.innerHTML = label + `<div class="body"><div class="text"></div><div class="stamp">${stamp}</div></div>`;
+        row.querySelector('.text').textContent = text;
+        log.appendChild(row);
+        log.scrollTop = log.scrollHeight;
+    }
+    function addSys(text) {
+        const d = new Date();
+        addRow('sys', text, d.toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'}) + ' · ' + d.toLocaleDateString());
+    }
+
+    function setStatus(text, cls) {
+        const el = $('status');
+        el.textContent = text;
+        el.className = 'status-line' + (cls ? ' ' + cls : '');
+    }
+
+    async function checkServer() {
+        try {
+            const r = await fetch('/health');
+            if (r.ok) {
+                $('srvDot').className = 'dot ok';
+                $('srvText').textContent = 'Server online';
+            } else throw 0;
+        } catch (e) {
+            $('srvDot').className = 'dot err';
+            $('srvText').textContent = 'Server offline';
+        }
+    }
+    checkServer();
+    setInterval(checkServer, 15000);
+
+    async function initAudio() {
+        if (audioCtx) return;
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        mediaStream = await navigator.mediaDevices.getUserMedia({
+            audio: { echoCancellation: true, noiseSuppression: true, channelCount: 1 }
+        });
+        sourceNode = audioCtx.createMediaStreamSource(mediaStream);
+        scriptNode = audioCtx.createScriptProcessor(4096, 1, 1);
+        scriptNode.onaudioprocess = onAudio;
+        sourceNode.connect(scriptNode);
+        scriptNode.connect(audioCtx.destination);
+    }
+
+    function downsampleTo16k(input) {
+        const sr = audioCtx.sampleRate;
+        if (sr === 16000) return input;
+        const outLen = Math.floor(input.length * 16000 / sr);
+        const out = new Float32Array(outLen);
+        const step = sr / 16000;
+        for (let i = 0; i < outLen; i++) {
+            const start = Math.floor(i * step);
+            const end = Math.min(Math.floor((i + 1) * step), input.length);
+            let sum = 0;
+            for (let j = start; j < end; j++) sum += input[j];
+            out[i] = sum / (end - start || 1);
+        }
+        return out;
+    }
+
+    function onAudio(e) {
+        if (!recording || speaking) return;
+        const chan = e.inputBuffer.getChannelData(0);
+        const mono = downsampleTo16k(chan);
+        pcmChunks.push(mono);
+        let rms = 0;
+        for (let i = 0; i < mono.length; i++) rms += mono[i] * mono[i];
+        rms = Math.sqrt(rms / mono.length);
+        const pct = Math.min(100, Math.round(rms * 220));
+        const fill = $('meterFill');
+        fill.style.width = pct + '%';
+        fill.className = pct > 78 ? 'hot' : '';
+    }
+
+    function bytesToB64(bytes) {
+        const CHUNK = 0x8000;
+        let bin = '';
+        for (let i = 0; i < bytes.length; i += CHUNK) {
+            bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CHUNK));
+        }
+        return btoa(bin);
+    }
+
+    function startTalk() {
+        if (recording || speaking) return;
+        if (!navigator.mediaDevices) { setStatus('Microphone not supported in this browser', 'err'); return; }
+        initAudio().then(() => {
+            if (!recording) return;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            recording = true;
+            pcmChunks = [];
+            $('ptt').classList.add('recording');
+            $('ptt').querySelector('.ptt-label').textContent = '';
+            $('ptt').insertAdjacentHTML('beforeend', '<span class="rec-blink"></span>');
+            setStatus('Listening…', 'live');
+            $('callMeta').textContent = 'RECORDING';
+        }).catch(err => {
+            recording = false;
+            setStatus(err.name === 'NotAllowedError' ? 'Microphone access denied' : 'Microphone error: ' + err.message, 'err');
+        });
+        recording = true;
+    }
+
+    function stopTalk() {
+        if (!recording) return;
+        recording = false;
+        const dot = $('ptt').querySelector('.rec-blink');
+        if (dot) dot.remove();
+        $('ptt').classList.remove('recording');
+        $('ptt').querySelector('.ptt-label').textContent = 'Hold to talk';
+        $('meterFill').style.width = '0%';
+        setStatus('Recognizing…', 'live');
+        $('callMeta').textContent = 'PROCESSING';
+        sendUtterance();
+    }
+
+    async function sendUtterance() {
+        let total = 0;
+        const all = new Float32Array(pcmChunks.reduce((n, c) => n + c.length, 0));
+        for (const c of pcmChunks) { all.set(c, total); total += c.length; }
+        if (total < 4800) { setStatus('Nothing heard — hold and speak a little longer.', 'err'); $('callMeta').textContent = 'SESSION READY'; return; }
+        const pcm16 = new Int16Array(total);
+        for (let i = 0; i < total; i++) pcm16[i] = Math.max(-1, Math.min(1, all[i])) * 32767;
+        const b64 = bytesToB64(new Uint8Array(pcm16.buffer));
+        turnStart = performance.now();
+
+        let text;
+        try {
+            const r = await fetch('/api/stt', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ audio: b64, language: lang, sample_rate: 16000 })
+            });
+            const j = await r.json();
+            text = (j.text || '').trim();
+        } catch (e) {
+            setStatus('Server unreachable.', 'err'); $('callMeta').textContent = 'SESSION READY'; return;
+        }
+        if (!text) { setStatus('Could not recognize speech — try again.', 'err'); $('callMeta').textContent = 'SESSION READY'; return; }
+        addRow('user', text, new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'}));
+
+        setStatus('Agent thinking…', 'live');
+        let answer;
+        try {
+            const r = await fetch('/api/test-call', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: text, language: lang, call_id: sessionId })
+            });
+            const j = await r.json();
+            answer = (j.response || '').trim();
+        } catch (e) {
+            setStatus('Server unreachable.', 'err'); $('callMeta').textContent = 'SESSION READY'; return;
+        }
+        if (!answer) { setStatus('No answer received.', 'err'); $('callMeta').textContent = 'SESSION READY'; return; }
+        addRow('agent', answer, new Date().toLocaleTimeString([], {hour: '2-digit', minute: '2-digit', second: '2-digit'}));
+
+        setStatus('Speaking…', 'live');
+        await playTTS(answer);
+        setStatus('Hold to talk. Your question is answered by the agent.', 'ok');
+        $('callMeta').textContent = 'SESSION READY';
+        lastLatency = performance.now() - turnStart;
+        $('latencyVal').textContent = Math.round(lastLatency) + ' ms';
+    }
+
+    async function playTTS(text) {
+        speaking = true;
+        try {
+            const r = await fetch('/api/tts', {
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ text: text, language: lang })
+            });
+            const j = await r.json();
+            const bin = atob(j.audio);
+            const pcm = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) pcm[i] = bin.charCodeAt(i);
+            const int16 = new Int16Array(pcm.buffer);
+            const n = int16.length;
+            const buf = audioCtx.createBuffer(1, n, 24000);
+            const ch = buf.getChannelData(0);
+            for (let i = 0; i < n; i++) ch[i] = int16[i] / 32768;
+            await new Promise(resolve => {
+                const src = audioCtx.createBufferSource();
+                src.buffer = buf;
+                src.connect(audioCtx.destination);
+                src.onended = resolve;
+                src.start();
+            });
+        } catch (e) {
+            addSys('Audio playback failed: ' + e.message);
+        }
+        speaking = false;
+        $('meterFill').style.width = '0%';
+    }
+
+    const ptt = $('ptt');
+    let pttDown = false;
+    ptt.addEventListener('pointerdown', e => { e.preventDefault(); pttDown = true; startTalk(); });
+    window.addEventListener('pointerup', () => { if (pttDown) { pttDown = false; stopTalk(); } });
+    ptt.addEventListener('keydown', e => {
+        if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) { e.preventDefault(); pttDown = true; startTalk(); }
+    });
+    ptt.addEventListener('keyup', e => {
+        if ((e.key === ' ' || e.key === 'Enter') && pttDown) { pttDown = false; stopTalk(); }
+    });
+    window.addEventListener('keydown', e => {
+        if (e.code === 'Space' && e.target === document.body) { e.preventDefault(); pttDown = true; startTalk(); }
+    });
+    window.addEventListener('keyup', e => {
+        if (e.code === 'Space' && pttDown) { pttDown = false; stopTalk(); }
+    });
+    document.addEventListener('visibilitychange', () => { if (document.hidden && pttDown) { pttDown = false; stopTalk(); } });
+
+    $('clearBtn').addEventListener('click', () => {
+        $('tlog').innerHTML = '<div class="empty">Hold the button and ask a question.<br>Release when you finish speaking.</div>';
+        $('latencyVal').textContent = '—';
+        sessionId = 'web-' + Date.now();
+        addSys('Session reset.');
+    });
+
+    const clock = $('clock');
+    const t0 = Date.now();
+    setInterval(() => {
+        const s = Math.floor((Date.now() - t0) / 1000);
+        clock.textContent = [s / 3600, s / 60 % 60, s % 60].map(n => String(Math.floor(n)).padStart(2, '0')).join(':');
+    }, 1000);
+</script>
+</body>
+</html>

@@ -239,3 +239,7 @@ async def refresh_faq():
 dashboard_dir = os.path.join(os.path.dirname(__file__), "..", "dashboard")
 if os.path.isdir(dashboard_dir):
     app.mount("/dashboard", StaticFiles(directory=dashboard_dir, html=True), name="dashboard")
+
+voice_client_dir = os.path.join(os.path.dirname(__file__), "..", "voice_client")
+if os.path.isdir(voice_client_dir):
+    app.mount("/voice", StaticFiles(directory=voice_client_dir, html=True), name="voice_client")
