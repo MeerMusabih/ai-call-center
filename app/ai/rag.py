@@ -18,11 +18,13 @@ class RAGPipeline:
         language: str,
     ) -> str:
         import time as _t
+        import asyncio
         t0 = _t.time()
 
-        faq_chunks = self.faq_store.search(
-            query=user_message,
-            language=language,
+        faq_chunks = await asyncio.to_thread(
+            self.faq_store.search,
+            user_message,
+            language,
             top_k=2,
         )
 
