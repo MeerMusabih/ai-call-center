@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 ensure_ffmpeg_on_path(settings.ffmpeg_path or None)
 
-STT_MAX_CONCURRENCY = 4
+STT_MAX_CONCURRENCY = settings.stt_max_concurrency
 _stt_semaphore = asyncio.Semaphore(STT_MAX_CONCURRENCY)
 
 
@@ -21,6 +21,7 @@ class SpeechToText:
             settings.whisper_model,
             device="cpu",
             compute_type="int8",
+            cpu_threads=settings.whisper_cpu_threads,
         )
         logger.info(f"Whisper model loaded: {settings.whisper_model}")
 

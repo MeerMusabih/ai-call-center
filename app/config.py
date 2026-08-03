@@ -21,6 +21,8 @@ class Settings(BaseSettings):
     chroma_collection: str = "faq_embeddings"
 
     whisper_model: str = "base"
+    whisper_cpu_threads: int = 0
+    stt_max_concurrency: int = 4
 
     tts_voice_en: str = "en-US-AvaNeural"
     tts_voice_ar: str = "ar-SA-ZariyahNeural"
