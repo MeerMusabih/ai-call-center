@@ -5,8 +5,8 @@ set -euo pipefail
 cd "$(dirname "$0")"
 
 OLLAMA_MODEL="${OLLAMA_MODEL:-qwen2.5:1.5b}"
-WHISPER_MODEL="${WHISPER_MODEL:-base}"
-EMBEDDING_MODEL="${EMBEDDING_MODEL:-all-MiniLM-L6-v2}"
+WHISPER_MODEL="${WHISPER_MODEL:-medium}"
+EMBEDDING_MODEL="${EMBEDDING_MODEL:-sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2}"
 
 echo "=============================================="
 echo "  AI Call Center - Linux setup"
