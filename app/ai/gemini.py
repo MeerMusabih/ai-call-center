@@ -44,7 +44,7 @@ class OllamaChat:
                 "keep_alive": -1,
                 "options": {
                     "temperature": 0.7,
-                    "num_predict": 28,
+                    "num_predict": 48,
                 },
             },
         )

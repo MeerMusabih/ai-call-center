@@ -61,7 +61,7 @@ class AzureOpenAIChat:
         payload = {
             "messages": messages,
             "temperature": 0.7,
-            "max_tokens": 28,
+            "max_tokens": 48,
             "stream": True,
         }
 
