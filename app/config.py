@@ -40,6 +40,11 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     embedding_local_only: bool = False
 
+    faq_max_distance: float = 0.35
+    web_search_enabled: bool = True
+    web_search_timeout: float = 5.0
+    web_min_similarity: float = 0.42
+
     stt_sample_rate: int = 8000
     stt_language_en: str = "en"
     stt_language_ar: str = "ar"

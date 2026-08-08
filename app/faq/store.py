@@ -59,6 +59,10 @@ class FAQStore:
         logger.info(f"Ingested {len(items)} FAQ items into vector store")
 
     def search(self, query: str, language: str, top_k: int = 3) -> list[dict]:
+        chunks, _ = self.search_with_scores(query, language, top_k)
+        return chunks
+
+    def search_with_scores(self, query: str, language: str, top_k: int = 3) -> tuple[list[dict], list[float]]:
         if not self._initialized:
             self.initialize()
 
@@ -73,7 +77,9 @@ class FAQStore:
         )
 
         if not results["metadatas"][0]:
-            return []
+            return [], []
+
+        distances = list(results["distances"][0]) if results.get("distances") else []
 
         chunks = []
         for metadata in results["metadatas"][0]:
@@ -85,7 +91,7 @@ class FAQStore:
                 "language": metadata["language"],
             })
 
-        return chunks
+        return chunks, distances
 
     def delete_item(self, item_id: str):
         self.collection.delete(ids=[item_id])

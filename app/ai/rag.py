@@ -1,4 +1,5 @@
 import logging
+from app.config import settings
 from app.faq.store import FAQStore
 from app.ai.router import HybridChat
 from app.models.schemas import TranscriptEntry
@@ -21,8 +22,8 @@ class RAGPipeline:
         import asyncio
         t0 = _t.time()
 
-        faq_chunks = await asyncio.to_thread(
-            self.faq_store.search,
+        faq_chunks, distances = await asyncio.to_thread(
+            self.faq_store.search_with_scores,
             user_message,
             language,
             top_k=2,
@@ -31,11 +32,34 @@ class RAGPipeline:
         t1 = _t.time()
         logger.info(f"[TIMING] faq_search={t1-t0:.2f}s")
 
-        faq_context = self._format_faq_context(faq_chunks)
+        best_distance = min(distances) if distances else float("inf")
+
+        if best_distance <= settings.faq_max_distance:
+            context = self._format_faq_context(faq_chunks)
+        elif settings.web_search_enabled:
+            from app.ai.websearch import search as web_search
+
+            t_search = _t.time()
+            snippet = await web_search(user_message, language)
+            logger.info(f"[TIMING] web_search={_t.time()-t_search:.2f}s")
+            relevant = language == "en" and await asyncio.to_thread(
+                self._is_relevant, user_message, snippet
+            )
+            if snippet and (relevant or language != "en"):
+                context = f"[Web search result]\n{snippet}"
+            else:
+                context = ""
+        else:
+            context = ""
+
+        if not context:
+            from app.ai.prompts import NO_INFORMATION_AR, NO_INFORMATION_EN
+
+            return NO_INFORMATION_AR if language == "ar" else NO_INFORMATION_EN
 
         response = await self.gemini.generate_response(
             user_message=user_message,
-            faq_context=faq_context,
+            faq_context=context,
             transcript=transcript,
             language=language,
         )
@@ -56,6 +80,15 @@ class RAGPipeline:
             context_parts.append(f"FAQ {i}:\nQ: {question}\nA: {answer}")
 
         return "\n\n".join(context_parts)
+
+    def _is_relevant(self, query: str, snippet: str) -> bool:
+        import numpy as np
+
+        embeddings = self.faq_store.embeddings.get_single_embedding
+        eq = np.array(embeddings(query))
+        es = np.array(embeddings(snippet))
+        sim = float(np.dot(eq, es) / (np.linalg.norm(eq) * np.linalg.norm(es)))
+        return sim >= settings.web_min_similarity
 
     async def get_greeting(self, language: str) -> str:
         return await self.gemini.get_initial_greeting(language)
