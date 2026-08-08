@@ -40,8 +40,9 @@ class Settings(BaseSettings):
     embedding_model: str = "all-MiniLM-L6-v2"
     embedding_local_only: bool = False
 
-    faq_max_distance: float = 0.35
-    web_search_enabled: bool = True
+    faq_max_distance: float = 0.33
+    company_sim_threshold: float = 0.58
+    web_search_enabled: bool = False
     web_search_timeout: float = 5.0
     web_min_similarity: float = 0.42
 

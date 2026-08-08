@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acme Solutions - FAQ Management</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+        --line: #e4e7eb;
+        --line-soft: #eef0f3;
+        --ink: #1b1f24;
+        --ink-2: #3d434b;
+        --muted: #7a8189;
+        --accent: #2563eb;
+        --accent-dark: #1d4ed8;
+        --danger: #dc2626;
+        --ok: #16a34a;
+        --bar: #101418;
+        --bar-line: #262b31;
+        --shadow: 0 1px 2px rgba(16,20,24,.06);
+    }
+    html, body { height: 100%; }
+    body {
+        font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+        background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.45;
+        -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    .topbar {
+        background: var(--bar); color: #dfe3e8; height: 54px;
+        display: flex; align-items: center; padding: 0 22px; gap: 18px;
+        border-bottom: 1px solid var(--bar-line);
+        position: sticky; top: 0; z-index: 20;
+    }
+    .brand { font-size: 15px; font-weight: 600; color: #f2f4f6; letter-spacing: .2px; }
+    .brand small { display: block; font-size: 10.5px; font-weight: 400; color: #8b929b; letter-spacing: .4px; margin-top: 1px; }
+    .topbar .sep { width: 1px; height: 22px; background: var(--bar-line); }
+    .nav { display: flex; gap: 4px; }
+    .nav a { color: #9aa1aa; font-size: 12.5px; padding: 6px 12px; border-radius: 6px; font-weight: 500; }
+    .nav a:hover { color: #f2f4f6; text-decoration: none; background: #1b2026; }
+    .nav a.on { color: #f2f4f6; background: #2a313a; }
+    .spacer { flex: 1; }
+    .status-pill { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #9aa1aa; }
+    .dot { width: 8px; height: 8px; border-radius: 50%; background: #4b5563; }
+    .dot.ok { background: var(--ok); box-shadow: 0 0 0 3px rgba(22,163,74,.18); }
+    .dot.err { background: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,.18); }
+
+    .shell { max-width: 1080px; margin: 0 auto; padding: 26px 22px 60px; }
+
+    .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .page-head h1 { font-size: 22px; font-weight: 650; }
+    .page-head p { color: var(--muted); font-size: 13px; margin-top: 6px; }
+    .count-pill {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 8px;
+        padding: 8px 14px; font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums;
+    }
+    .count-pill b { color: var(--ink-2); font-size: 15px; }
+
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; box-shadow: var(--shadow); }
+    .card-head {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 13px 18px; border-bottom: 1px solid var(--line);
+    }
+    .card-head h2 { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .7px; }
+
+    .form-grid { padding: 20px 18px; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field { display: flex; flex-direction: column; gap: 6px; }
+    .field label { font-size: 12px; font-weight: 600; color: var(--ink-2); }
+    .field input, .field select, .field textarea {
+        font-family: inherit; font-size: 13px; color: var(--ink);
+        border: 1px solid var(--line); border-radius: 8px; padding: 9px 12px; background: var(--surface);
+        outline: none; transition: border-color .12s, box-shadow .12s;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+        border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,.12);
+    }
+    .field textarea { resize: vertical; min-height: 74px; }
+    .field.full { grid-column: 1 / -1; }
+    .form-actions { grid-column: 1 / -1; display: flex; gap: 10px; align-items: center; }
+    .form-msg { font-size: 12.5px; }
+
+    .btn {
+        border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+        font-family: inherit; font-size: 13px; font-weight: 600; padding: 9px 18px;
+        border-radius: 8px; cursor: pointer; transition: border-color .12s, color .12s, background .12s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent-dark); }
+    .btn.primary { background: var(--accent); border-color: var(--accent-dark); color: #ffffff; }
+    .btn.primary:hover { background: var(--accent-dark); color: #ffffff; }
+    .btn.primary:disabled { opacity: .55; cursor: not-allowed; }
+    .btn.danger { color: var(--danger); }
+    .btn.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+    .filters { padding: 12px 18px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; border-bottom: 1px solid var(--line); }
+    .filters .seg { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 7px; padding: 2px; }
+    .filters .seg button {
+        border: 0; background: transparent; color: var(--muted); font-family: inherit;
+        font-size: 12.5px; padding: 5px 12px; border-radius: 5px; cursor: pointer; font-weight: 500;
+    }
+    .filters .seg button.on { background: var(--surface); color: var(--ink-2); box-shadow: var(--shadow); }
+    .filters input {
+        font-family: inherit; font-size: 13px; color: var(--ink);
+        border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; background: var(--surface);
+        outline: none; flex: 1; min-width: 200px;
+    }
+    .filters input:focus { border-color: var(--accent); }
+
+    .table-wrap { overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { text-align: left; padding: 11px 16px; font-size: 13px; vertical-align: top; }
+    th {
+        font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase;
+        letter-spacing: .5px; border-bottom: 1px solid var(--line); background: var(--bg);
+        white-space: nowrap;
+    }
+    td { border-bottom: 1px solid var(--line-soft); }
+    tr:last-child td { border-bottom: 0; }
+    td .q { font-weight: 600; color: var(--ink); }
+    td .a { color: var(--ink-2); font-size: 12.5px; margin-top: 3px; max-width: 460px; }
+    .id-cell { color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+    .lang-badge {
+        display: inline-block; font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 999px;
+        border: 1px solid var(--line); background: var(--bg); color: var(--ink-2); text-transform: uppercase;
+        letter-spacing: .4px;
+    }
+    .lang-badge.en { color: var(--accent-dark); border-color: #d6e4ff; background: #e8f0fe; }
+    .lang-badge.ar { color: #b45309; border-color: #fde68a; background: #fffbeb; }
+    .cat-cell { color: var(--muted); font-size: 12px; }
+    .actions { white-space: nowrap; }
+
+    .empty-row td { text-align: center; color: var(--muted); padding: 40px 16px; font-size: 13px; }
+
+    .banner {
+        max-width: 1080px; margin: 14px auto 0; padding: 11px 18px; border-radius: 10px;
+        background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; font-size: 13px;
+    }
+    .hidden { display: none; }
+
+    @media (max-width: 760px) {
+        .topbar { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 10px; }
+        .nav { order: 3; width: 100%; }
+        .form-grid { grid-template-columns: 1fr; }
+        .page-head { flex-direction: column; align-items: flex-start; }
+    }
+</style>
+</head>
+<body>
+    <div class="topbar">
+        <div class="brand">Acme Solutions<small>AI Contact Center</small></div>
+        <div class="sep"></div>
+        <nav class="nav">
+            <a href="/voice/">Home</a>
+            <a href="/voice/faq.html" class="on">FAQ Management</a>
+        </nav>
+        <div class="spacer"></div>
+        <div class="status-pill"><span class="dot" id="srvDot"></span><span id="srvText">Checking server…</span></div>
+    </div>
+
+    <div class="banner hidden" id="msgBanner"></div>
+
+    <div class="shell">
+        <div class="page-head">
+            <div>
+                <h1>FAQ Management</h1>
+                <p>Add new questions and answers, or remove entries. Changes are saved to the knowledge base immediately.</p>
+            </div>
+            <div class="count-pill">Total entries <b id="countVal">0</b></div>
+        </div>
+
+        <div class="card">
+            <div class="card-head"><h2>Add New Entry</h2></div>
+            <form class="form-grid" id="addForm">
+                <div class="field">
+                    <label for="fLang">Language</label>
+                    <select id="fLang">
+                        <option value="en">English</option>
+                        <option value="ar">Arabic (العربية)</option>
+                    </select>
+                </div>
+                <div class="field">
+                    <label for="fCat">Category</label>
+                    <select id="fCat">
+                        <option value="general">general</option>
+                        <option value="billing">billing</option>
+                        <option value="support">support</option>
+                        <option value="product">product</option>
+                        <option value="account">account</option>
+                    </select>
+                </div>
+                <div class="field full">
+                    <label for="fQuestion">Question</label>
+                    <input type="text" id="fQuestion" placeholder="e.g. Do you offer discounts for students?" required>
+                </div>
+                <div class="field full">
+                    <label for="fAnswer">Answer</label>
+                    <textarea id="fAnswer" placeholder="Type the answer the agent should give." required></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn primary" id="addBtn">Add Entry</button>
+                    <span class="form-msg" id="addMsg"></span>
+                </div>
+            </form>
+        </div>
+
+        <div class="card" style="margin-top: 22px;">
+            <div class="card-head"><h2>Knowledge Base</h2></div>
+            <div class="filters">
+                <div class="seg" id="langFilter">
+                    <button data-lang="" class="on">All</button>
+                    <button data-lang="en">English</button>
+                    <button data-lang="ar">Arabic</button>
+                </div>
+                <input type="text" id="searchBox" placeholder="Search questions and answers…">
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Language</th>
+                            <th>Question / Answer</th>
+                            <th>Category</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody id="faqBody">
+                        <tr class="empty-row"><td colspan="5">Loading knowledge base…</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const $ = id => document.getElementById(id);
+    let allItems = [];
+    let langFilter = '';
+    let search = '';
+
+    function showBanner(msg, kind) {
+        const b = $('msgBanner');
+        b.textContent = msg;
+        b.className = 'banner';
+        b.style.borderColor = kind === 'err' ? '#fecaca' : '#bbf7d0';
+        b.style.background = kind === 'err' ? '#fef2f2' : '#f0fdf4';
+        b.style.color = kind === 'err' ? '#991b1b' : '#166534';
+        setTimeout(() => { b.classList.add('hidden'); }, 4000);
+    }
+
+    async function checkServer() {
+        try {
+            const r = await fetch('/health');
+            if (r.ok) {
+                $('srvDot').className = 'dot ok';
+                $('srvText').textContent = 'Server online';
+            } else throw 0;
+        } catch (e) {
+            $('srvDot').className = 'dot err';
+            $('srvText').textContent = 'Server offline';
+        }
+    }
+    checkServer();
+
+    async function loadFaq() {
+        const body = $('faqBody');
+        try {
+            const r = await fetch('/api/faq');
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            allItems = await r.json();
+            render();
+        } catch (e) {
+            body.innerHTML = '<tr class="empty-row"><td colspan="5">Could not load the knowledge base: ' + (e.message || e) + '</td></tr>';
+        }
+    }
+
+    function escapeHtml(s) {
+        return String(s).replace(/[&<>"']/g, c => ({
+            '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+        }[c]));
+    }
+
+    function render() {
+        const body = $('faqBody');
+        const q = search.toLowerCase();
+        const items = allItems.filter(i => {
+            if (langFilter && i.language !== langFilter) return false;
+            if (q && !(i.question + ' ' + i.answer).toLowerCase().includes(q)) return false;
+            return true;
+        });
+        $('countVal').textContent = allItems.length;
+
+        if (!items.length) {
+            body.innerHTML = '<tr class="empty-row"><td colspan="5">No entries match.</td></tr>';
+            return;
+        }
+        body.innerHTML = items.map(i => `
+            <tr data-id="${escapeHtml(i.id)}">
+                <td class="id-cell">${escapeHtml(i.id)}</td>
+                <td><span class="lang-badge ${i.language}">${i.language === 'ar' ? 'Arabic' : 'English'}</span></td>
+                <td>
+                    <div class="q">${escapeHtml(i.question)}</div>
+                    <div class="a">${escapeHtml(i.answer)}</div>
+                </td>
+                <td class="cat-cell">${escapeHtml(i.category || '')}</td>
+                <td class="actions"><button class="btn danger" data-del="${escapeHtml(i.id)}">Remove</button></td>
+            </tr>
+        `).join('');
+    }
+
+    $('faqBody').addEventListener('click', async e => {
+        const btn = e.target.closest('[data-del]');
+        if (!btn) return;
+        const id = btn.dataset.del;
+        if (!confirm('Remove FAQ entry ' + id + '?')) return;
+        btn.disabled = true;
+        try {
+            const r = await fetch('/api/faq/' + encodeURIComponent(id), { method: 'DELETE' });
+            if (!r.ok) throw new Error('HTTP ' + r.status);
+            showBanner('Entry ' + id + ' removed.', 'ok');
+            await loadFaq();
+        } catch (err) {
+            showBanner('Could not remove entry: ' + (err.message || err), 'err');
+            btn.disabled = false;
+        }
+    });
+
+    $('langFilter').addEventListener('click', e => {
+        const b = e.target.closest('button');
+        if (!b) return;
+        langFilter = b.dataset.lang;
+        $('langFilter').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+        render();
+    });
+
+    $('searchBox').addEventListener('input', e => {
+        search = e.target.value;
+        render();
+    });
+
+    $('addForm').addEventListener('submit', async e => {
+        e.preventDefault();
+        const question = $('fQuestion').value.trim();
+        const answer = $('fAnswer').value.trim();
+        const language = $('fLang').value;
+        const category = $('fCat').value;
+        const btn = $('addBtn');
+        const msg = $('addMsg');
+
+        if (!question || !answer) { msg.textContent = 'Question and answer are required.'; msg.style.color = '#dc2626'; return; }
+
+        btn.disabled = true;
+        msg.textContent = 'Adding…';
+        try {
+            const r = await fetch('/api/faq', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question, answer, language, category })
+            });
+            const j = await r.json();
+            if (!r.ok || j.error) throw new Error(j.error || ('HTTP ' + r.status));
+            msg.textContent = '';
+            $('fQuestion').value = '';
+            $('fAnswer').value = '';
+            showBanner('Entry added to the knowledge base.', 'ok');
+            await loadFaq();
+        } catch (err) {
+            msg.textContent = 'Failed: ' + (err.message || err);
+            msg.style.color = '#dc2626';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    loadFaq();
+</script>
+</body>
+</html>

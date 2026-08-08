@@ -8,9 +8,68 @@ logger = logging.getLogger(__name__)
 
 
 class RAGPipeline:
+    _COMPANY_PROTOTYPES_EN = [
+        "What is your pricing?",
+        "Do you offer discounts or promotions?",
+        "How do I contact your company?",
+        "What products and services do you offer?",
+        "How do I get support?",
+        "What are your company policies?",
+        "How do I change or cancel my plan?",
+        "Where are your offices located?",
+        "Who are the people at your company?",
+        "Can you integrate with our software?",
+        "Do you have a mobile app?",
+        "How do I file a complaint about your service?",
+        "What is your phone number?",
+        "Do you offer refunds?",
+        "How many employees do you have?",
+        "What languages does your support team speak?",
+        "Do you have staff in other countries?",
+        "Is there a contract or commitment period?",
+        "How long does implementation take?",
+        "Do you offer a product demo?",
+        "Can I add more users to my plan?",
+        "Do you have a help center or documentation?",
+        "Who are your business partners?",
+        "Are you available outside working hours?",
+        "How many customers use your service?",
+        "Can I talk to a human agent?",
+    ]
+
+    _COMPANY_PROTOTYPES_AR = [
+        "كم سعر خدماتكم؟",
+        "هل تقدمون خصومات أو عروضاً؟",
+        "كيف أتواصل مع شركتكم؟",
+        "ما هي منتجاتكم وخدماتكم؟",
+        "كيف أحصل على الدعم؟",
+        "ما هي سياسات شركتكم؟",
+        "كيف أغير أو ألغي باقتي؟",
+        "أين توجد مكاتبكم؟",
+        "من هم الموظفون في شركتكم؟",
+        "هل يمكنكم التكامل مع برنامجنا؟",
+        "هل لديكم تطبيق للهاتف؟",
+        "كيف أقدم شكوى عن خدمتكم؟",
+        "ما هو رقم هاتفكم؟",
+        "هل تقدمون استرداد الأموال؟",
+        "كم عدد موظفيكم؟",
+        "ما هي اللغات التي يتحدث بها فريق الدعم؟",
+        "هل لديكم موظفون في دول أخرى؟",
+        "هل يوجد عقد أو فترة التزام؟",
+        "كم من الوقت يستغرق التنفيذ؟",
+        "هل تقدمون عرضاً توضيحياً للمنتج؟",
+        "هل يمكنني إضافة مستخدمين أكثر إلى باقتي؟",
+        "هل لديكم مركز مساعدة أو توثيق؟",
+        "من هم شركاؤكم التجاريون؟",
+        "هل تتوفرون خارج ساعات العمل؟",
+        "كم عدد العملاء الذين يستخدمون خدمتكم؟",
+        "هل يمكنني التحدث مع موظف بشري؟",
+    ]
+
     def __init__(self, faq_store=None):
         self.faq_store = faq_store or FAQStore()
         self.gemini = HybridChat()
+        self._prototype_embeddings: dict[str, object] = {}
 
     async def process_message(
         self,
@@ -34,26 +93,18 @@ class RAGPipeline:
 
         best_distance = min(distances) if distances else float("inf")
 
-        source = "none"
         if best_distance <= settings.faq_max_distance:
             context = self._format_faq_context(faq_chunks)
             source = "faq"
-        elif settings.web_search_enabled:
-            from app.ai.websearch import search as web_search
-
-            t_search = _t.time()
-            snippet = await web_search(user_message, language)
-            logger.info(f"[TIMING] web_search={_t.time()-t_search:.2f}s")
-            relevant = language == "en" and await asyncio.to_thread(
-                self._is_relevant, user_message, snippet
-            )
-            if snippet and (relevant or language != "en"):
-                context = f"[Web search result]\n{snippet}"
-                source = "web"
-            else:
-                context = ""
         else:
-            context = ""
+            from app.ai.prompts import get_decline
+
+            kind = (
+                "company"
+                if await asyncio.to_thread(self._is_company_topic, user_message, language)
+                else "unrelated"
+            )
+            return get_decline(kind, language), kind
 
         if not context:
             from app.ai.prompts import NO_INFORMATION_AR, NO_INFORMATION_EN
@@ -87,14 +138,37 @@ class RAGPipeline:
 
         return "\n\n".join(context_parts)
 
-    def _is_relevant(self, query: str, snippet: str) -> bool:
+    def _is_company_topic(self, query: str, language: str) -> bool:
         import numpy as np
 
-        embeddings = self.faq_store.embeddings.get_single_embedding
-        eq = np.array(embeddings(query))
-        es = np.array(embeddings(snippet))
-        sim = float(np.dot(eq, es) / (np.linalg.norm(eq) * np.linalg.norm(es)))
-        return sim >= settings.web_min_similarity
+        embedding = self.faq_store.embeddings.get_single_embedding
+        eq = np.array(embedding(query))
+        best = 0.0
+        for proto in self._company_prototypes(language):
+            sim = float(
+                np.dot(eq, proto) / (np.linalg.norm(eq) * np.linalg.norm(proto))
+            )
+            if sim > best:
+                best = sim
+        return best >= settings.company_sim_threshold
+
+    def _company_prototypes(self, language: str):
+        import numpy as np
+
+        if language == "ar":
+            texts = self._COMPANY_PROTOTYPES_AR
+            key = "ar"
+        else:
+            texts = self._COMPANY_PROTOTYPES_EN
+            key = "en"
+        if self._prototype_embeddings.get(key) is None:
+            self._prototype_embeddings[key] = np.array(
+                [
+                    self.faq_store.embeddings.get_single_embedding(text)
+                    for text in texts
+                ]
+            )
+        return self._prototype_embeddings[key]
 
     async def get_greeting(self, language: str) -> str:
         return await self.gemini.get_initial_greeting(language)

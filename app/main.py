@@ -19,7 +19,7 @@ from app.ivr.menu import router as ivr_router
 from app.voice.stream import voice_handler, rag, tts, faq_store, stt
 from app.utils.sessions import session_manager
 from app.utils.call_logger import CallLogger
-from app.models.schemas import HealthResponse, CallState, Language
+from app.models.schemas import FAQItem, HealthResponse, CallState, Language
 
 logger = logging.getLogger(__name__)
 
@@ -261,6 +261,45 @@ async def get_session(call_id: str):
 @app.get("/api/faq")
 async def get_faq():
     return faq_store.get_all()
+
+
+@app.post("/api/faq")
+async def add_faq(body: dict = Body(...)):
+    question = (body.get("question") or "").strip()
+    answer = (body.get("answer") or "").strip()
+    if not question or not answer:
+        return {"error": "question and answer are required"}
+
+    language = body.get("language", "en")
+    try:
+        language_enum = Language(language)
+    except ValueError:
+        return {"error": f"invalid language: {language}"}
+
+    item = FAQItem(
+        id=body.get("id") or f"faq-{uuid.uuid4().hex[:8]}",
+        question=question,
+        answer=answer,
+        category=(body.get("category") or "general").strip(),
+        language=language_enum,
+    )
+    faq_store.add_item(item)
+    return {
+        "message": "FAQ item added",
+        "item": {
+            "id": item.id,
+            "question": item.question,
+            "answer": item.answer,
+            "category": item.category,
+            "language": item.language.value,
+        },
+    }
+
+
+@app.delete("/api/faq/{item_id}")
+async def delete_faq(item_id: str):
+    faq_store.delete_item(item_id)
+    return {"message": "FAQ item deleted", "id": item_id}
 
 
 @app.post("/api/faq/ingest")

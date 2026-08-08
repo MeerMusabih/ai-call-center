@@ -1,4 +1,7 @@
+import json
 import logging
+from pathlib import Path
+
 import chromadb
 from app.config import settings
 from app.models.schemas import FAQItem, Language
@@ -29,6 +32,11 @@ class FAQStore:
             self._initialized = True
             return
 
+        existing = self.collection.get(include=["metadatas"])
+        stale_ids = [m["id"] for m in (existing["metadatas"] or [])]
+        if stale_ids:
+            self.collection.delete(ids=stale_ids)
+
         self.ingest_items(items)
         self._initialized = True
 
@@ -38,7 +46,7 @@ class FAQStore:
         ids = []
 
         for item in items:
-            documents.append(f"{item.question} {item.answer}")
+            documents.append(item.question)
             metadatas.append({
                 "id": item.id,
                 "question": item.question,
@@ -95,7 +103,65 @@ class FAQStore:
 
     def delete_item(self, item_id: str):
         self.collection.delete(ids=[item_id])
+        self._remove_from_json(item_id)
         logger.info(f"Deleted FAQ item {item_id}")
+
+    def add_item(self, item: FAQItem):
+        self.ingest_items([item])
+        self._append_to_json(item)
+        logger.info(f"Added FAQ item {item.id}")
+
+    def _data_files(self) -> list[Path]:
+        data_dir = Path(settings.faq_data_dir)
+        if not data_dir.exists():
+            return []
+        return sorted(
+            p for p in data_dir.glob("*")
+            if p.suffix.lower() in (".json", ".csv", ".md", ".txt")
+        )
+
+    def _append_to_json(self, item: FAQItem):
+        data_dir = Path(settings.faq_data_dir)
+        data_dir.mkdir(parents=True, exist_ok=True)
+        json_files = sorted(data_dir.glob("*.json"))
+        if json_files:
+            path = json_files[0]
+            with open(path, "r", encoding="utf-8") as f:
+                items = json.load(f)
+            items.append({
+                "id": item.id,
+                "question": item.question,
+                "answer": item.answer,
+                "category": item.category,
+                "language": item.language.value,
+            })
+        else:
+            path = data_dir / "sample_faq.json"
+            items = [{
+                "id": item.id,
+                "question": item.question,
+                "answer": item.answer,
+                "category": item.category,
+                "language": item.language.value,
+            }]
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(items, f, ensure_ascii=False, indent=2)
+
+    def _remove_from_json(self, item_id: str):
+        for path in self._data_files():
+            if path.suffix.lower() != ".json":
+                continue
+            try:
+                with open(path, "r", encoding="utf-8") as f:
+                    items = json.load(f)
+            except (json.JSONDecodeError, OSError):
+                continue
+            remaining = [i for i in items if i.get("id") != item_id]
+            if len(remaining) != len(items):
+                with open(path, "w", encoding="utf-8") as f:
+                    json.dump(remaining, f, ensure_ascii=False, indent=2)
+                logger.info(f"Removed FAQ item {item_id} from {path}")
+                return
 
     def get_all(self) -> list[dict]:
         if not self._initialized:

@@ -49,7 +49,9 @@ class SpeechToText:
         segments, _ = self.model.transcribe(
             audio_np,
             language=whisper_lang,
-            beam_size=1,
+            beam_size=5,
+            vad_filter=True,
+            vad_parameters=dict(min_silence_duration_ms=500),
         )
 
         text = " ".join(segment.text for segment in segments)

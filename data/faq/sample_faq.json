@@ -54,5 +54,404 @@
     "answer": "نقبل فيزا وماستركارد وأمريكان إكسبريس والتحويلات البنكية.",
     "category": "billing",
     "language": "ar"
+  },
+  {
+    "id": "faq-009",
+    "question": "كيف ألغي اشتراكي؟",
+    "answer": "لإلغاء اشتراكك، انتقل إلى الإعدادات، ثم الفوترة، واضغط على إلغاء الاشتراك. ستبقى ميزاتك متاحة حتى نهاية الفترة الحالية.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-010",
+    "question": "كيف أتواصل مع الدعم؟",
+    "answer": "يمكنك التواصل معنا عبر الهاتف على الرقم 1-800-SUPPORT، أو عبر البريد الإلكتروني support@example.com، أو من خلال هذا الخط الصوتي.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-011",
+    "question": "What does your company do?",
+    "answer": "Acme Solutions provides customer support services for businesses, helping them handle customer inquiries by phone, chat, and email.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-012",
+    "question": "When was the company founded?",
+    "answer": "Acme Solutions was founded in 2015 and is headquartered in Austin, Texas.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-013",
+    "question": "Do you offer a free trial?",
+    "answer": "Yes, we offer a 14-day free trial on all plans. No credit card is required.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-014",
+    "question": "What is your refund policy?",
+    "answer": "We offer a full refund within 30 days of purchase if you are not satisfied with our services.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-015",
+    "question": "Where is your office located?",
+    "answer": "Our headquarters is in Austin, Texas, and we have support offices in Cairo and Dubai.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-016",
+    "question": "ماذا تفعل شركتكم؟",
+    "answer": "توفر شركة Acme Solutions خدمات دعم العملاء للشركات، وتساعدها على الرد على استفسارات العملاء عبر الهاتف والدردشة والبريد الإلكتروني.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-017",
+    "question": "متى تأسست الشركة؟",
+    "answer": "تأسست شركة Acme Solutions في عام 2015، ويقع مقرها الرئيسي في أوستن بولاية تكساس.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-018",
+    "question": "هل توفرون فترة تجريبية مجانية؟",
+    "answer": "نعم، نوفر فترة تجريبية مجانية لمدة 14 يوماً على جميع الباقات، ولا يلزم وجود بطاقة ائتمانية.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-019",
+    "question": "ما هي سياسة استرداد الأموال؟",
+    "answer": "نوفر استرداداً كاملاً للأموال خلال 30 يوماً من تاريخ الشراء إذا لم تكن راضياً عن خدماتنا.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-020",
+    "question": "أين يقع مكتبكم؟",
+    "answer": "يقع مقرنا الرئيسي في أوستن بولاية تكساس، ولدينا مكاتب دعم في القاهرة ودبي.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-021",
+    "question": "Is my data secure?",
+    "answer": "Yes, your data is encrypted and stored securely, and we never share your personal information with third parties.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-022",
+    "question": "Do you have a mobile app?",
+    "answer": "Yes, our mobile app is available for iOS and Android on the App Store and Google Play.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-023",
+    "question": "How do I upgrade my plan?",
+    "answer": "To upgrade your plan, go to Settings, then Billing, and click on Upgrade. The change takes effect immediately.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-024",
+    "question": "What are your holiday hours?",
+    "answer": "Our offices are closed on public holidays, but our automated assistant is available 24/7 on those days.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-025",
+    "question": "Can I change my email address?",
+    "answer": "Yes, you can change your email address in your account settings under your profile. A confirmation link will be sent to your new email address.",
+    "category": "technical",
+    "language": "en"
+  },
+  {
+    "id": "faq-026",
+    "question": "هل بياناتي آمنة؟",
+    "answer": "نعم، بياناتك مشفرة ومخزنة بأمان، ولا نشارك معلوماتك الشخصية مع أي جهات خارجية.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-027",
+    "question": "هل لديكم تطبيق للهاتف؟",
+    "answer": "نعم، تطبيقنا متوفر لأنظمة iOS وAndroid على متجر التطبيقات وجوجل بلاي.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-028",
+    "question": "كيف أرقّي باقتي؟",
+    "answer": "لترقية باقتك، انتقل إلى الإعدادات، ثم الفوترة، واضغط على ترقية. يسري التغيير فوراً.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-029",
+    "question": "ما هي ساعات العمل في الأعياد؟",
+    "answer": "مكاتبنا مغلقة في العطلات الرسمية، لكن مساعدنا الآلي متاح على مدار الساعة في تلك الأيام.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-030",
+    "question": "هل يمكنني تغيير عنوان بريدي الإلكتروني؟",
+    "answer": "نعم، يمكنك تغيير عنوان بريدك الإلكتروني في إعدادات الحساب ضمن الملف الشخصي. سيتم إرسال رابط تأكيد إلى البريد الجديد.",
+    "category": "technical",
+    "language": "ar"
+  },
+  {
+    "id": "faq-031",
+    "question": "Can I get my money back?",
+    "answer": "We offer a full refund within 30 days of purchase if you are not satisfied with our services.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-032",
+    "question": "When did your company start?",
+    "answer": "Acme Solutions was founded in 2015 and is headquartered in Austin, Texas.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-033",
+    "question": "What time are you open?",
+    "answer": "Our business hours are Monday to Friday, 9 AM to 6 PM.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-034",
+    "question": "How do I unsubscribe?",
+    "answer": "To cancel your subscription, go to Settings, then Billing, and click on Cancel Subscription. You will retain access until the end of your current billing period.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-035",
+    "question": "What's your support phone number?",
+    "answer": "You can reach us by phone at 1-800-SUPPORT, by email at support@example.com, or through this voice line.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-036",
+    "question": "هل يمكنني استرداد أموالي؟",
+    "answer": "نوفر استرداداً كاملاً للأموال خلال 30 يوماً من تاريخ الشراء إذا لم تكن راضياً عن خدماتنا.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-037",
+    "question": "متى بدأت شركتكم؟",
+    "answer": "تأسست شركة Acme Solutions في عام 2015، ويقع مقرها الرئيسي في أوستن بولاية تكساس.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-038",
+    "question": "في أي وقت تفتحون؟",
+    "answer": "ساعات عملنا من الاثنين إلى الجمعة، من الساعة 9 صباحاً حتى 6 مساءً.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-039",
+    "question": "كيف يمكنني إلغاء اشتراكي؟",
+    "answer": "لإلغاء اشتراكك، انتقل إلى الإعدادات، ثم الفوترة، واضغط على إلغاء الاشتراك. ستبقى ميزاتك متاحة حتى نهاية الفترة الحالية.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-040",
+    "question": "ما هو رقم الدعم؟",
+    "answer": "يمكنك التواصل معنا عبر الهاتف على الرقم 1-800-SUPPORT، أو عبر البريد الإلكتروني support@example.com، أو من خلال هذا الخط الصوتي.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-041",
+    "question": "How do I upgrade my account?",
+    "answer": "To upgrade your plan, go to Settings, then Billing, and click on Upgrade. The change takes effect immediately.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-042",
+    "question": "Can I pay by cash?",
+    "answer": "We accept Visa, Mastercard, American Express, and bank transfers.",
+    "category": "billing",
+    "language": "en"
+  },
+  {
+    "id": "faq-043",
+    "question": "كيف أرقّي حسابي؟",
+    "answer": "لترقية باقتك، انتقل إلى الإعدادات، ثم الفوترة، واضغط على ترقية. يسري التغيير فوراً.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-044",
+    "question": "هل يمكنني الدفع نقداً؟",
+    "answer": "نقبل فيزا وماستركارد وأمريكان إكسبريس والتحويلات البنكية.",
+    "category": "billing",
+    "language": "ar"
+  },
+  {
+    "id": "faq-045",
+    "question": "What is your email address?",
+    "answer": "You can reach us by email at support@example.com.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-046",
+    "question": "ما هو بريدكم الإلكتروني؟",
+    "answer": "يمكنكم التواصل معنا عبر البريد الإلكتروني على support@example.com.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-047",
+    "question": "Who am I talking to?",
+    "answer": "You're speaking with Acme Solutions' AI support assistant. I'm here to answer questions about our company, plans, and services.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-048",
+    "question": "What can you answer me?",
+    "answer": "I can answer questions about Acme Solutions: our company, business hours, plans, pricing, billing, refunds, and support contacts.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-049",
+    "question": "What are you working on?",
+    "answer": "Right now I'm helping you. I'm an AI assistant built to answer questions about Acme Solutions and our services.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-050",
+    "question": "مع من أتحدث؟",
+    "answer": "أنت تتحدث مع مساعد الدعم الذكي لشركة Acme Solutions. أنا هنا للإجابة عن أسئلتكم حول شركتنا وباقاتنا وخدماتنا.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-051",
+    "question": "ماذا يمكنك أن تجيبني؟",
+    "answer": "يمكنني الإجابة عن أسئلة حول Acme Solutions: شركتنا، ساعات العمل، الباقات، الأسعار، الفوترة، استرداد الأموال، وجهات التواصل للدعم.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-052",
+    "question": "على ماذا تعمل؟",
+    "answer": "أنا أساعدك حالياً. أنا مساعد ذكي صُمم للإجابة عن الأسئلة المتعلقة بشركة Acme Solutions وخدماتنا.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-053",
+    "question": "Who are you?",
+    "answer": "I'm Acme Solutions' AI support assistant. I'm here to answer questions about our company, plans, and services.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-054",
+    "question": "What do you do?",
+    "answer": "I'm an AI support assistant for Acme Solutions. I answer questions about our company, products, billing, and support.",
+    "category": "general",
+    "language": "en"
+  },
+  {
+    "id": "faq-055",
+    "question": "من أنت؟",
+    "answer": "أنا مساعد الدعم الذكي لشركة Acme Solutions. أنا هنا للإجابة عن أسئلتكم حول شركتنا وباقاتنا وخدماتنا.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-056",
+    "question": "ماذا تفعل؟",
+    "answer": "أنا مساعد دعم ذكي لشركة Acme Solutions، أجيب عن الأسئلة المتعلقة بشركتنا ومنتجاتنا وفوترة الحسابات والدعم.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-057",
+    "question": "What services do you provide?",
+    "answer": "Acme Solutions provides customer support services for businesses, helping them respond to customer inquiries over phone, chat, and email.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-058",
+    "question": "Can you tell me about the services you provide?",
+    "answer": "Acme Solutions provides customer support services for businesses, helping them respond to customer inquiries over phone, chat, and email.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-059",
+    "question": "Tell me about your services",
+    "answer": "Acme Solutions provides customer support services for businesses, helping them respond to customer inquiries over phone, chat, and email.",
+    "category": "company",
+    "language": "en"
+  },
+  {
+    "id": "faq-060",
+    "question": "ما هي الخدمات التي تقدمونها؟",
+    "answer": "توفر شركة Acme Solutions خدمات دعم العملاء للشركات، وتساعدها على الرد على استفسارات العملاء عبر الهاتف والدردشة والبريد الإلكتروني.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-061",
+    "question": "أخبرني عن خدماتكم",
+    "answer": "توفر شركة Acme Solutions خدمات دعم العملاء للشركات، وتساعدها على الرد على استفسارات العملاء عبر الهاتف والدردشة والبريد الإلكتروني.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-062",
+    "question": "هل يمكنك إخباري عن خدماتكم؟",
+    "answer": "توفر شركة Acme Solutions خدمات دعم العملاء للشركات، وتساعدها على الرد على استفسارات العملاء عبر الهاتف والدردشة والبريد الإلكتروني.",
+    "category": "company",
+    "language": "ar"
+  },
+  {
+    "id": "faq-063",
+    "question": "من أتحدث معه؟",
+    "answer": "أنت تتحدث مع مساعد الدعم الذكي لشركة Acme Solutions. أنا هنا للإجابة عن أسئلتكم حول شركتنا وباقاتنا وخدماتنا.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-064",
+    "question": "ما من أتحدث؟",
+    "answer": "أنت تتحدث مع مساعد الدعم الذكي لشركة Acme Solutions. أنا هنا للإجابة عن أسئلتكم حول شركتنا وباقاتنا وخدماتنا.",
+    "category": "general",
+    "language": "ar"
+  },
+  {
+    "id": "faq-065",
+    "question": "مع من أنا أتحدث؟",
+    "answer": "أنت تتحدث مع مساعد الدعم الذكي لشركة Acme Solutions. أنا هنا للإجابة عن أسئلتكم حول شركتنا وباقاتنا وخدماتنا.",
+    "category": "general",
+    "language": "ar"
   }
 ]
