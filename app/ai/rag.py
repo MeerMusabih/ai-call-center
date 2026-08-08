@@ -35,6 +35,8 @@ class RAGPipeline:
         "Are you available outside working hours?",
         "How many customers use your service?",
         "Can I talk to a human agent?",
+        "How much do your plans cost?",
+        "What is the price of your service?",
     ]
 
     _COMPANY_PROTOTYPES_AR = [
@@ -64,6 +66,8 @@ class RAGPipeline:
         "هل تتوفرون خارج ساعات العمل؟",
         "كم عدد العملاء الذين يستخدمون خدمتكم؟",
         "هل يمكنني التحدث مع موظف بشري؟",
+        "كم تكلفة باقتكم؟",
+        "كم سعر باقتكم؟",
     ]
 
     def __init__(self, faq_store=None):
