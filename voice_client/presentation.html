@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Call Center — Presentation</title>
+<style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+        --bg: #f3f4f6;
+        --surface: #ffffff;
+        --line: #e4e7eb;
+        --ink: #1b1f24;
+        --ink-2: #3d434b;
+        --muted: #7a8189;
+        --accent: #2563eb;
+        --accent-dark: #1d4ed8;
+        --ok: #16a34a;
+        --warn: #d97706;
+        --bar: #101418;
+        --bar-line: #262b31;
+        --shadow: 0 1px 2px rgba(16,20,24,.06);
+        --shadow-lg: 0 12px 32px rgba(16,20,24,.12);
+    }
+    html, body { height: 100%; }
+    body {
+        font-family: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+        background: var(--bg); color: var(--ink); font-size: 16px; line-height: 1.5;
+        -webkit-font-smoothing: antialiased; overflow: hidden;
+    }
+
+    /* Top bar */
+    .topbar {
+        background: var(--bar); color: #dfe3e8; height: 50px;
+        display: flex; align-items: center; padding: 0 22px; gap: 18px;
+        border-bottom: 1px solid var(--bar-line);
+    }
+    .brand { font-size: 14px; font-weight: 600; color: #f2f4f6; letter-spacing: .2px; }
+    .brand small { display: block; font-size: 10.5px; font-weight: 400; color: #8b929b; letter-spacing: .4px; }
+    .topbar .sep { width: 1px; height: 20px; background: var(--bar-line); }
+    .topbar .crumb { color: #9aa1aa; font-size: 12.5px; }
+    .topbar .crumb b { color: #dfe3e8; font-weight: 600; }
+    .spacer { flex: 1; }
+    .counter { font-size: 12.5px; color: #9aa1aa; font-variant-numeric: tabular-nums; }
+
+    /* Slide deck */
+    .stage { position: relative; height: calc(100vh - 50px); overflow: hidden; }
+    .slide {
+        position: absolute; inset: 0; display: none; padding: 56px 80px 70px;
+        overflow-y: auto; background: var(--bg);
+    }
+    .slide.active { display: block; animation: fadein .28s ease; }
+    @keyframes fadein { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+    .kicker {
+        display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 1.2px;
+        text-transform: uppercase; color: var(--accent); margin-bottom: 10px;
+    }
+    h1 { font-size: 40px; font-weight: 700; letter-spacing: -.5px; line-height: 1.15; margin-bottom: 14px; }
+    h2 { font-size: 30px; font-weight: 700; letter-spacing: -.4px; margin-bottom: 8px; }
+    h3 { font-size: 18px; font-weight: 600; margin: 22px 0 10px; color: var(--ink-2); }
+    .sub { font-size: 18px; color: var(--muted); max-width: 860px; margin-bottom: 26px; }
+    .lead { font-size: 21px; color: var(--ink-2); max-width: 900px; line-height: 1.6; }
+    .lead b { color: var(--ink); }
+
+    /* Cards / grids */
+    .grid { display: grid; gap: 16px; margin-top: 18px; }
+    .grid.cols-2 { grid-template-columns: repeat(2, 1fr); }
+    .grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+    .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+    .grid.cols-5 { grid-template-columns: repeat(5, 1fr); }
+    .card {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+        box-shadow: var(--shadow); padding: 20px 22px;
+    }
+    .card h4 { font-size: 14px; font-weight: 700; margin-bottom: 8px; color: var(--ink); }
+    .card .n { font-size: 28px; font-weight: 700; color: var(--accent); line-height: 1.1; }
+    .card .n.small { font-size: 20px; }
+    .card p { font-size: 13.5px; color: var(--muted); }
+    .card ul { list-style: none; }
+    .card li { font-size: 14px; color: var(--ink-2); padding: 5px 0 5px 18px; position: relative; }
+    .card li::before { content: ""; position: absolute; left: 0; top: 13px; width: 6px; height: 6px; border-radius: 2px; background: var(--accent); }
+
+    /* Pipe diagram */
+    .pipeline { display: flex; align-items: center; justify-content: center; gap: 0; margin: 34px 0 10px; flex-wrap: wrap; }
+    .pipe {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+        padding: 14px 20px; text-align: center; min-width: 150px; box-shadow: var(--shadow);
+    }
+    .pipe .t { font-size: 13px; font-weight: 700; color: var(--ink); }
+    .pipe .d { font-size: 11.5px; color: var(--muted); margin-top: 3px; }
+    .pipe .m { font-size: 11px; color: var(--accent); font-weight: 600; margin-top: 6px; }
+    .arrow { font-size: 20px; color: var(--muted); padding: 0 10px; font-weight: 700; }
+
+    /* Decision flow */
+    .flow { display: flex; flex-direction: column; gap: 10px; max-width: 760px; margin-top: 20px; }
+    .flow-row { display: flex; align-items: center; gap: 12px; }
+    .flow-box {
+        background: var(--surface); border: 1px solid var(--line); border-radius: 10px;
+        padding: 14px 18px; flex: 1; box-shadow: var(--shadow);
+    }
+    .flow-box .t { font-size: 14.5px; font-weight: 600; }
+    .flow-box .d { font-size: 12.5px; color: var(--muted); margin-top: 3px; }
+    .flow-tag { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px; white-space: nowrap; }
+    .tag-faq { background: #dbeafe; color: #1d4ed8; }
+    .tag-co { background: #fef3c7; color: #b45309; }
+    .tag-un { background: #fee2e2; color: #b91c1c; }
+    .flow-down { text-align: center; color: var(--muted); font-weight: 700; font-size: 14px; }
+
+    /* Lists */
+    ul.plain { list-style: none; }
+    ul.plain li { padding: 9px 0 9px 26px; position: relative; font-size: 15.5px; color: var(--ink-2); }
+    ul.plain li::before { content: ""; position: absolute; left: 0; top: 17px; width: 8px; height: 8px; border-radius: 3px; background: var(--accent); }
+    ul.plain li b { color: var(--ink); }
+
+    /* Tables */
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); margin-top: 16px; }
+    th { text-align: left; font-size: 12px; text-transform: uppercase; letter-spacing: .6px; color: var(--muted); padding: 12px 16px; border-bottom: 1px solid var(--line); background: #fafbfc; }
+    td { font-size: 14px; padding: 11px 16px; border-bottom: 1px solid var(--line-soft, #eef0f3); color: var(--ink-2); }
+    tr:last-child td { border-bottom: 0; }
+    td b { color: var(--ink); }
+    td .mono, code { font-family: "Cascadia Code", "Consolas", monospace; font-size: 13px; background: #f1f3f6; padding: 1px 6px; border-radius: 5px; color: var(--ink); }
+
+    /* Code block */
+    pre {
+        background: var(--bar); color: #e5e9ef; border-radius: 12px; padding: 20px 24px;
+        font-family: "Cascadia Code", "Consolas", monospace; font-size: 13.5px; line-height: 1.65;
+        margin-top: 18px; overflow-x: auto;
+    }
+    pre .c { color: #8b929b; }
+    pre .g { color: #7ee787; }
+
+    /* Two column text */
+    .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 16px; }
+    .two-col .col h3 { margin-top: 0; }
+    .two-col .col p { font-size: 15px; color: var(--ink-2); margin-bottom: 10px; }
+
+    /* Callout */
+    .callout {
+        background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px;
+        padding: 18px 22px; margin-top: 20px; color: #1e3a8a; font-size: 15px;
+    }
+    .callout b { color: #172554; }
+
+    /* Footer nav */
+    .nav {
+        position: absolute; bottom: 0; left: 0; right: 0; height: 52px;
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 0 22px; background: var(--surface); border-top: 1px solid var(--line);
+    }
+    .nav .keys { font-size: 12px; color: var(--muted); }
+    .nav .keys kbd {
+        font-family: inherit; font-size: 11px; background: #f1f3f6; border: 1px solid var(--line);
+        border-radius: 5px; padding: 2px 7px; color: var(--ink-2);
+    }
+    .nav .go { display: flex; gap: 8px; }
+    .nav button {
+        border: 1px solid var(--line); background: var(--surface); color: var(--ink-2);
+        font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 7px 16px;
+        border-radius: 7px; cursor: pointer;
+    }
+    .nav button:hover { border-color: var(--accent); color: var(--accent-dark); }
+    .nav button.primary { background: var(--accent); border-color: var(--accent-dark); color: #fff; }
+    .nav button.primary:hover { background: var(--accent-dark); color: #fff; }
+
+    @media (max-width: 900px) {
+        .slide { padding: 30px 28px 70px; }
+        h1 { font-size: 30px; }
+        .grid.cols-4, .grid.cols-5 { grid-template-columns: repeat(2, 1fr); }
+        .two-col { grid-template-columns: 1fr; }
+        .pipeline { flex-direction: column; gap: 8px; }
+        .arrow { transform: rotate(90deg); padding: 4px 0; }
+        .pipe { min-width: 100%; }
+    }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="brand">AI Call Center<small>Solution presentation</small></div>
+    <div class="sep"></div>
+    <div class="crumb">Voice AI <b>/ Customer Support</b></div>
+    <div class="spacer"></div>
+    <div class="counter"><span id="cur">1</span> / <span id="tot">14</span></div>
+</div>
+
+<div class="stage" id="stage">
+
+    <!-- 1: Title -->
+    <section class="slide">
+        <span class="kicker">Voice AI for customer support</span>
+        <h1>AI Call Center</h1>
+        <p class="lead">A fully local, bilingual (English / Arabic) voice agent that answers customer questions with natural speech — from a knowledge base the business controls, with no cloud AI APIs and no per-call fees.</p>
+        <div class="grid cols-3">
+            <div class="card"><h4>100% local</h4><p>STT, LLM, embeddings and search run on this machine. Audio stays on-premise.</p></div>
+            <div class="card"><h4>Bilingual</h4><p>English and Arabic through one multilingual pipeline, chosen by the caller.</p></div>
+            <div class="card"><h4>Knowledge base</h4><p>65 FAQ entries you edit live from a web page — no re-deploys.</p></div>
+        </div>
+    </section>
+
+    <!-- 2: The problem -->
+    <section class="slide">
+        <span class="kicker">Why build this</span>
+        <h2>The problem</h2>
+        <p class="sub">Contact centers are expensive, slow to staff, and hard to scale across languages.</p>
+        <div class="grid cols-2">
+            <div class="card">
+                <h4>Cost</h4>
+                <ul>
+                    <li>Human agents are expensive per minute</li>
+                    <li>Cloud AI APIs charge per call / per token</li>
+                    <li>Staffing for 24/7 coverage multiplies the bill</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Friction</h4>
+                <ul>
+                    <li>Long wait times and repeat-the-question IVRs</li>
+                    <li>Support teams often don't speak the caller's language</li>
+                    <li>Consistent answers are hard to guarantee at scale</li>
+                </ul>
+            </div>
+        </div>
+        <div class="callout"><b>The insight:</b> most calls are the same recurring questions. An FAQ-driven voice agent answers those instantly, in either language, and hands off to a human only when it should.</div>
+    </section>
+
+    <!-- 3: The solution -->
+    <section class="slide">
+        <span class="kicker">What we built</span>
+        <h2>The solution</h2>
+        <p class="sub">A caller picks a language, asks a question out loud, and gets a spoken answer — routed through three layers of intelligence.</p>
+        <div class="grid cols-3">
+            <div class="card">
+                <h4>1. IVR start</h4>
+                <p>"Press 1 for English, press 2 for Arabic." A natural entry flow that sets the language for the whole call.</p>
+            </div>
+            <div class="card">
+                <h4>2. Knows the answers</h4>
+                <p>Finds the right FAQ entry by meaning (embeddings), not keywords — so phrasing, typos and accents work.</p>
+            </div>
+            <div class="card">
+                <h4>3. Knows its limits</h4>
+                <p>Company question with no answer? Offers a human agent. Unrelated small-talk? Politely stays on-topic.</p>
+            </div>
+        </div>
+        <div class="callout">Every response is tagged with its source (<code>faq</code> / <code>company</code> / <code>unrelated</code>) and auditable via the API — nothing happens silently.</div>
+    </section>
+
+    <!-- 4: Live demo -->
+    <section class="slide">
+        <span class="kicker">See it live</span>
+        <h2>Live demo</h2>
+        <p class="sub">Open the voice console and run through the flow.</p>
+        <div class="grid cols-2">
+            <div class="card">
+                <h4>Step by step</h4>
+                <ul>
+                    <li>Open <code>/voice/</code> and click <b>Start Conversation</b></li>
+                    <li>Press <b>1</b> for English or <b>2</b> for Arabic</li>
+                    <li>Hold <b>Space</b> and ask: "What are your business hours?"</li>
+                    <li>Ask: "How much do your plans cost?" → human-agent handoff</li>
+                    <li>Ask: "Tell me a joke" → stays on-topic</li>
+                    <li>Restart in Arabic and repeat</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>What the audience will see</h4>
+                <ul>
+                    <li>Live transcript of what you say and the agent replies</li>
+                    <li>The FAQ Management page at <code>/voice/faq.html</code></li>
+                    <li>Add an entry → ask it → answered instantly, no restart</li>
+                    <li>Real-time audio meter while you hold to talk</li>
+                </ul>
+            </div>
+        </div>
+        <div class="callout"><b>Try these on the demo:</b> business hours, mobile app, refunds, "who are you?", a joke (decline), Arabic pricing question.</div>
+    </section>
+
+    <!-- 5: Architecture -->
+    <section class="slide">
+        <span class="kicker">How it works</span>
+        <h2>Architecture</h2>
+        <p class="sub">A single FastAPI server orchestrates a fully local speech + knowledge pipeline.</p>
+        <div class="pipeline">
+            <div class="pipe"><div class="t">Caller</div><div class="d">Browser or phone</div></div>
+            <div class="arrow">&#8594;</div>
+            <div class="pipe"><div class="t">IVR</div><div class="d">Language selection</div></div>
+            <div class="arrow">&#8594;</div>
+            <div class="pipe"><div class="t">STT</div><div class="d">faster-whisper</div><div class="m">medium · int8 · VAD</div></div>
+            <div class="arrow">&#8594;</div>
+            <div class="pipe"><div class="t">RAG</div><div class="d">ChromaDB + LLM</div><div class="m">qwen2.5:1.5b</div></div>
+            <div class="arrow">&#8594;</div>
+            <div class="pipe"><div class="t">TTS</div><div class="d">edge-tts</div><div class="m">EN / AR neural</div></div>
+        </div>
+        <div class="grid cols-3" style="margin-top:26px">
+            <div class="card"><h4>Backend</h4><p>Python + FastAPI, WebSockets for live audio streaming.</p></div>
+            <div class="card"><h4>Knowledge store</h4><p>ChromaDB vector database; multilingual embeddings index 65 FAQ entries.</p></div>
+            <div class="card"><h4>LLM fallback</h4><p>Optional Azure OpenAI primary with automatic local Ollama fallback (one env var).</p></div>
+        </div>
+    </section>
+
+    <!-- 6: Decision pipeline -->
+    <section class="slide">
+        <span class="kicker">The brain</span>
+        <h2>How it decides what to answer</h2>
+        <p class="sub">Three-layer routing — an FAQ match first, then a topic classifier, and only then the language model.</p>
+        <div class="flow">
+            <div class="flow-row"><div class="flow-box"><div class="t">1. Transcribe the spoken question</div><div class="d">faster-whisper medium, CPU int8, VAD noise filtering</div></div></div>
+            <div class="flow-row"><div class="flow-box"><div class="t">2. Search FAQ by meaning</div><div class="d">embedding similarity against all entries (EN + AR in one model)</div></div></div>
+            <div class="flow-row">
+                <div class="flow-box"><div class="t">Close match ≤ 0.33 distance?</div></div>
+                <div class="flow-tag tag-faq">FAQ</div>
+                <span style="color:var(--muted);font-weight:700">&#8594;</span>
+                <div class="flow-box"><div class="t">Answer from knowledge base</div></div>
+            </div>
+            <div class="flow-row">
+                <div class="flow-box"><div class="t">No match — is it about the company? (similarity ≥ 0.58)</div></div>
+                <div class="flow-tag tag-co">COMPANY</div>
+                <span style="color:var(--muted);font-weight:700">&#8594;</span>
+                <div class="flow-box"><div class="t">Decline + offer human agent</div></div>
+            </div>
+            <div class="flow-row">
+                <div class="flow-box"><div class="t">Otherwise — unrelated topic</div></div>
+                <div class="flow-tag tag-un">UNRELATED</div>
+                <span style="color:var(--muted);font-weight:700">&#8594;</span>
+                <div class="flow-box"><div class="t">Polite stay-on-topic decline</div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 7: Tech stack -->
+    <section class="slide">
+        <span class="kicker">Under the hood</span>
+        <h2>Tech stack</h2>
+        <table>
+            <tr><th>Layer</th><th>Technology</th><th>Model / detail</th></tr>
+            <tr><td><b>Speech-to-text</b></td><td>faster-whisper</td><td><code>medium</code>, int8, beam 5, VAD filter</td></tr>
+            <tr><td><b>Language model</b></td><td>Ollama</td><td><code>qwen2.5:1.5b</code> (986 MB, local)</td></tr>
+            <tr><td><b>Text-to-speech</b></td><td>edge-tts</td><td><code>en-US-AvaNeural</code> / <code>ar-SA-ZariyahNeural</code></td></tr>
+            <tr><td><b>Embeddings</b></td><td>sentence-transformers</td><td><code>paraphrase-multilingual-MiniLM-L12-v2</code></td></tr>
+            <tr><td><b>Knowledge store</b></td><td>ChromaDB</td><td>65 FAQ entries (31 EN / 34 AR)</td></tr>
+            <tr><td><b>API / streaming</b></td><td>FastAPI + WebSockets</td><td>REST + duplex audio streams</td></tr>
+            <tr><td><b>Telephony</b></td><td>Twilio Media Streams</td><td>Optional real phone numbers</td></tr>
+        </table>
+    </section>
+
+    <!-- 8: Performance -->
+    <section class="slide">
+        <span class="kicker">Measured</span>
+        <h2>Performance</h2>
+        <p class="sub">Measured on this VM — 8 vCPU, 31 GB RAM, CPU-only. No GPU required.</p>
+        <div class="grid cols-4">
+            <div class="card"><div class="n">~0.5–0.9s</div><h4>FAQ answer</h4><p>end-to-end retrieval + LLM generation (English)</p></div>
+            <div class="card"><div class="n">~0.02s</div><h4>Decline</h4><p>classifier-only path, no LLM call</p></div>
+            <div class="card"><div class="n">~1–2s</div><h4>Speech-to-text</h4><p>medium model on CPU per utterance</p></div>
+            <div class="card"><div class="n">CPU-only</div><h4>No GPU</h4><p>8+ GB RAM recommended; int8 quantized STT</p></div>
+        </div>
+        <div class="grid cols-2" style="margin-top:16px">
+            <div class="card">
+                <h4>Why it's fast</h4>
+                <ul>
+                    <li>Declines never invoke the LLM — instant</li>
+                    <li>STT and embeddings offloaded to threads with bounded concurrency</li>
+                    <li>TTS streams audio during generation, not after</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Quality tuning</h4>
+                <ul>
+                    <li>FAQ match threshold tuned to 0.33</li>
+                    <li>Company classifier at 0.58 similarity</li>
+                    <li>Near-miss phrasings (pricing, coupons, billing) verified across both languages</li>
+                </ul>
+            </div>
+        </div>
+    </section>
+
+    <!-- 9: Management & control -->
+    <section class="slide">
+        <span class="kicker">Business control</span>
+        <h2>You own the knowledge base</h2>
+        <p class="sub">No data science team required — content lives in a readable file or a web page.</p>
+        <div class="grid cols-2">
+            <div class="card">
+                <h4>FAQ Management page</h4>
+                <ul>
+                    <li>Add / remove / edit entries in a browser</li>
+                    <li>Search and filter by language (EN / AR)</li>
+                    <li>Category tagging: billing, technical, company, general</li>
+                    <li>Changes take effect <b>instantly</b> — no restart</li>
+                </ul>
+            </div>
+            <div class="card">
+                <h4>Single source of truth</h4>
+                <ul>
+                    <li>Everything persists to <code>data/faq/sample_faq.json</code></li>
+                    <li>Vector index rebuilt automatically on startup</li>
+                    <li>Audit every answer's source via <code>/api/test-call</code></li>
+                </ul>
+            </div>
+        </div>
+        <div class="callout"><b>Demo moment:</b> add a brand-new FAQ entry live, then ask the agent about it — it answers immediately from the updated knowledge base.</div>
+    </section>
+
+    <!-- 10: Interfaces -->
+    <section class="slide">
+        <span class="kicker">Where it lives</span>
+        <h2>Interfaces</h2>
+        <p class="sub">One server, four ways in — all sharing the same engine.</p>
+        <div class="grid cols-2">
+            <div class="card"><h4>Browser voice console</h4><p>Click-to-talk demo at <code>/voice/</code> — no phone or mic driver setup. Great for trials and demos.</p></div>
+            <div class="card"><h4>FAQ manager</h4><p>Knowledge base editing at <code>/voice/faq.html</code>.</p></div>
+            <div class="card"><h4>Real phone calls</h4><p>Twilio Media Streams — point a number at <code>/webhook/call/incoming</code>, full IVR included.</p></div>
+            <div class="card"><h4>Dashboard &amp; API</h4><p>Live stats at <code>/dashboard/</code>; REST + WebSocket API for integrations, call logs, sessions.</p></div>
+        </div>
+        <table style="margin-top:16px">
+            <tr><th>Interface</th><th>URL / detail</th></tr>
+            <tr><td>Health check</td><td><code>/health</code></td></tr>
+            <tr><td>API docs</td><td><code>/docs</code> (Swagger, auto-generated)</td></tr>
+            <tr><td>Test a question</td><td><code>POST /api/test-call</code> → returns answer + source tag</td></tr>
+            <tr><td>FAQ CRUD</td><td><code>GET/POST/DELETE /api/faq</code></td></tr>
+        </table>
+    </section>
+
+    <!-- 11: Privacy -->
+    <section class="slide">
+        <span class="kicker">Data &amp; privacy</span>
+        <h2>Where does the data go?</h2>
+        <p class="sub">Designed to keep everything on-premise by default.</p>
+        <div class="two-col">
+            <div class="col">
+                <h3>Stays local</h3>
+                <p>Speech-to-text, the language model, embeddings, and the knowledge search all run on this machine.</p>
+                <p>No audio is sent to cloud AI providers; there are no per-call or per-token fees.</p>
+            </div>
+            <div class="col">
+                <h3>Two optional internet calls</h3>
+                <p><b>Text-to-speech</b> — edge-tts uses Microsoft's free neural voices (can be swapped for a local TTS).</p>
+                <p><b>Phone calls</b> — only if you connect Twilio for real numbers.</p>
+                <p>Both are configurable / replaceable in <code>.env</code>.</p>
+            </div>
+        </div>
+        <div class="callout">For a fully air-gapped deployment, run your own TTS — the rest of the pipeline needs no internet at all.</div>
+    </section>
+
+    <!-- 12: Deployment -->
+    <section class="slide">
+        <span class="kicker">Ship it</span>
+        <h2>Deployment &amp; distribution</h2>
+        <p class="sub">From a laptop demo to production — same code.</p>
+        <div class="grid cols-3">
+            <div class="card"><h4>Linux server</h4><p>One command: <code>./setup.sh</code> then <code>./start.sh</code>. Auto-installs Ollama, FFmpeg, Python deps and models.</p></div>
+            <div class="card"><h4>Docker / Cloud Run</h4><p>Dockerfile included; <code>deploy/cloud_run.yaml</code> template for GCP.</p></div>
+            <div class="card"><h4>Windows</h4><p><code>setup.bat</code> / <code>start.bat</code>, or WSL.</p></div>
+        </div>
+        <h3>Two distribution bundles</h3>
+        <div class="grid cols-2">
+            <div class="card"><h4>Source bundle (50 KB)</h4><p>Full code + FAQ data. Recipient runs setup and downloads models (needs internet, ~10–20 min).</p></div>
+            <div class="card"><h4>Full offline bundle (3 GB)</h4><p>Includes whisper, embeddings and the LLM pre-loaded. Mostly offline install via <code>install_models.sh</code>.</p></div>
+        </div>
+    </section>
+
+    <!-- 13: Roadmap -->
+    <section class="slide">
+        <span class="kicker">What's next</span>
+        <h2>Roadmap</h2>
+        <p class="sub">The architecture is modular — each bullet is a slot in the existing pipeline, not a rewrite.</p>
+        <div class="grid cols-3">
+            <div class="card"><h4>More languages</h4><p>The multilingual embedding model extends to new languages; add entries + a TTS voice.</p></div>
+            <div class="card"><h4>Human handoff</h4><p>Real agent transfer with context — the classifier already detects when a handoff is appropriate.</p></div>
+            <div class="card"><h4>CRM integration</h4><p>Look up account details during a call for personalized answers.</p></div>
+            <div class="card"><h4>Local TTS</h4><p>Swap edge-tts for a fully on-prem voice to enable air-gapped deployments.</p></div>
+            <div class="card"><h4>Analytics</h4><p>Dashboard for question categories, resolution rate, and language mix.</p></div>
+            <div class="card"><h4>Auto-fill FAQ</h4><p>Learn new questions from calls and suggest entries for human review.</p></div>
+        </div>
+    </section>
+
+    <!-- 14: Closing -->
+    <section class="slide">
+        <span class="kicker">Summary</span>
+        <h1>An AI agent that answers<br>customer questions — out loud.</h1>
+        <ul class="plain">
+            <li><b>Fully local</b> — no cloud AI APIs, no per-call fees, audio stays on-premise</li>
+            <li><b>Bilingual</b> — English and Arabic through one pipeline</li>
+            <li><b>Smart boundaries</b> — answers from the FAQ, hands off to a human when it should, stays on-topic otherwise</li>
+            <li><b>Business-controlled</b> — edit the knowledge base from a web page, changes apply instantly</li>
+            <li><b>Deployable anywhere</b> — laptop, server, Docker, Cloud Run, real phone numbers</li>
+        </ul>
+        <div class="grid cols-3" style="margin-top:26px">
+            <div class="card"><div class="n small">65</div><p>FAQ entries today, EN + AR</p></div>
+            <div class="card"><div class="n small">3-way</div><p>routing: faq / company / unrelated</p></div>
+            <div class="card"><div class="n small">&lt; 1s</div><p>typical FAQ answer latency</p></div>
+        </div>
+        <div class="callout"><b>Let's talk live.</b> I'll walk you through the voice console, the FAQ manager, and a real bilingual call.</div>
+    </section>
+
+</div>
+
+<div class="nav">
+    <div class="keys"><kbd>&#8592;</kbd> <kbd>&#8594;</kbd> navigate &nbsp;·&nbsp; <kbd>Home</kbd>/<kbd>End</kbd> jump &nbsp;·&nbsp; <kbd>F</kbd> fullscreen</div>
+    <div class="go">
+        <button id="prevBtn">&#8592; Previous</button>
+        <button id="nextBtn" class="primary">Next &#8594;</button>
+    </div>
+</div>
+
+<script>
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const total = document.getElementById('tot');
+    const cur = document.getElementById('cur');
+    let i = 0;
+    total.textContent = slides.length;
+
+    function show(n) {
+        i = Math.max(0, Math.min(slides.length - 1, n));
+        slides.forEach((s, idx) => s.classList.toggle('active', idx === i));
+        cur.textContent = i + 1;
+        const top = document.querySelector('.slide.active');
+        if (top) top.scrollTop = 0;
+    }
+    function next() { show(i + 1); }
+    function prev() { show(i - 1); }
+
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+        else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+        else if (e.key === 'Home') { e.preventDefault(); show(0); }
+        else if (e.key === 'End') { e.preventDefault(); show(slides.length - 1); }
+        else if (e.key.toLowerCase() === 'f') {
+            if (!document.fullscreenElement) document.documentElement.requestFullscreen();
+            else document.exitFullscreen();
+        }
+    });
+    document.getElementById('nextBtn').addEventListener('click', next);
+    document.getElementById('prevBtn').addEventListener('click', prev);
+    show(0);
+</script>
+</body>
+</html>
