@@ -144,7 +144,7 @@ class VoiceWebSocketHandler:
 
             logger.info(f"Call {call_id} - User: {transcript_text}")
 
-            response = await rag.process_message(
+            response, _ = await rag.process_message(
                 user_message=transcript_text,
                 transcript=session.transcript,
                 language=language,

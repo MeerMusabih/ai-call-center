@@ -155,7 +155,7 @@ async def test_call(body: dict = Body(...)):
     import time as _t
     t0 = _t.time()
 
-    response_text = await rag.process_message(
+    response_text, source = await rag.process_message(
         user_message=message,
         transcript=session.transcript,
         language=language,
@@ -174,6 +174,7 @@ async def test_call(body: dict = Body(...)):
     return {
         "call_id": call_id,
         "response": response_text,
+        "source": source,
         "transcript_length": len(session.transcript),
     }
 

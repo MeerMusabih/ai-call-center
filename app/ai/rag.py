@@ -17,7 +17,7 @@ class RAGPipeline:
         user_message: str,
         transcript: list[TranscriptEntry],
         language: str,
-    ) -> str:
+    ) -> tuple[str, str]:
         import time as _t
         import asyncio
         t0 = _t.time()
@@ -34,8 +34,10 @@ class RAGPipeline:
 
         best_distance = min(distances) if distances else float("inf")
 
+        source = "none"
         if best_distance <= settings.faq_max_distance:
             context = self._format_faq_context(faq_chunks)
+            source = "faq"
         elif settings.web_search_enabled:
             from app.ai.websearch import search as web_search
 
@@ -47,6 +49,7 @@ class RAGPipeline:
             )
             if snippet and (relevant or language != "en"):
                 context = f"[Web search result]\n{snippet}"
+                source = "web"
             else:
                 context = ""
         else:
@@ -55,7 +58,10 @@ class RAGPipeline:
         if not context:
             from app.ai.prompts import NO_INFORMATION_AR, NO_INFORMATION_EN
 
-            return NO_INFORMATION_AR if language == "ar" else NO_INFORMATION_EN
+            return (
+                NO_INFORMATION_AR if language == "ar" else NO_INFORMATION_EN,
+                source,
+            )
 
         response = await self.gemini.generate_response(
             user_message=user_message,
@@ -67,7 +73,7 @@ class RAGPipeline:
         t2 = _t.time()
         logger.info(f"[TIMING] llm={t2-t1:.2f}s total={t2-t0:.2f}s")
 
-        return response
+        return response, source
 
     def _format_faq_context(self, chunks: list[dict]) -> str:
         if not chunks:
