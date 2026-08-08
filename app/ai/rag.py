@@ -37,6 +37,12 @@ class RAGPipeline:
         "Can I talk to a human agent?",
         "How much do your plans cost?",
         "What is the price of your service?",
+        "Do you have any coupons?",
+        "Can you transfer me to billing?",
+        "How many people work at Acme?",
+        "Does Acme have a help center?",
+        "I want to complain about billing",
+        "Can you connect me to sales?",
     ]
 
     _COMPANY_PROTOTYPES_AR = [
@@ -68,6 +74,12 @@ class RAGPipeline:
         "هل يمكنني التحدث مع موظف بشري؟",
         "كم تكلفة باقتكم؟",
         "كم سعر باقتكم؟",
+        "هل لديكم قسائم خصم؟",
+        "هل يمكنكم تحويلي إلى الفوترة؟",
+        "كم عدد موظفي أكمة؟",
+        "هل يوجد لدى أكمة مركز مساعدة؟",
+        "أريد تقديم شكوى حول الفوترة",
+        "هل يمكنكم توصيلي بالمبيعات؟",
     ]
 
     def __init__(self, faq_store=None):
